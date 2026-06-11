@@ -1,0 +1,3 @@
+/home/bremner/Documents/shared/projects/ezmetro/EZSAW/build/proto/CMakeFiles/ezsaw_proto1.dir
+/home/bremner/Documents/shared/projects/ezmetro/EZSAW/build/proto/CMakeFiles/edit_cache.dir
+/home/bremner/Documents/shared/projects/ezmetro/EZSAW/build/proto/CMakeFiles/rebuild_cache.dir

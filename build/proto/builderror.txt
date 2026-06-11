@@ -1,0 +1,38 @@
+[ 33%] Building CXX object CMakeFiles/ezsaw_proto1.dir/main.cpp.o
+In file included from /home/bremner/Documents/shared/projects/ezmetro/EZSAW/proto/main.cpp:1:
+/home/bremner/Documents/shared/projects/ezmetro/EZSAW/proto/types.h:26:9: error: ‘Measure’ does not name a type; did you mean ‘MeasureType’?
+   26 |         Measure x, y;
+      |         ^~~~~~~
+      |         MeasureType
+/home/bremner/Documents/shared/projects/ezmetro/EZSAW/proto/types.h: In constructor ‘Step::Step(double, double, double, double, double, TolType)’:
+/home/bremner/Documents/shared/projects/ezmetro/EZSAW/proto/types.h:33:11: error: class ‘Step’ does not have any field named ‘x’
+   33 |         : x{n1}, y{n2}, Upper{u}, Lower{l}, Error{e}, tt{t}
+      |           ^
+/home/bremner/Documents/shared/projects/ezmetro/EZSAW/proto/types.h:33:18: error: class ‘Step’ does not have any field named ‘y’
+   33 |         : x{n1}, y{n2}, Upper{u}, Lower{l}, Error{e}, tt{t}
+      |                  ^
+/home/bremner/Documents/shared/projects/ezmetro/EZSAW/proto/types.h: In constructor ‘Step::Step(double, double, double, double, double)’:
+/home/bremner/Documents/shared/projects/ezmetro/EZSAW/proto/types.h:44:11: error: class ‘Step’ does not have any field named ‘x’
+   44 |         : x{n1}, y{n2}, Upper{u}, Lower{l}, Error{e}, tt{TolType::FIXED} // fixed by default... sampled must be explicitly stated
+      |           ^
+/home/bremner/Documents/shared/projects/ezmetro/EZSAW/proto/types.h:44:18: error: class ‘Step’ does not have any field named ‘y’
+   44 |         : x{n1}, y{n2}, Upper{u}, Lower{l}, Error{e}, tt{TolType::FIXED} // fixed by default... sampled must be explicitly stated
+      |                  ^
+/home/bremner/Documents/shared/projects/ezmetro/EZSAW/proto/main.cpp: In function ‘int main()’:
+/home/bremner/Documents/shared/projects/ezmetro/EZSAW/proto/main.cpp:7:28: error: ‘JOULE’ was not declared in this scope; did you mean ‘Unit::JOULE’?
+    7 |         Measure f("Force", JOULE, 12);
+      |                            ^~~~~
+      |                            Unit::JOULE
+/home/bremner/Documents/shared/projects/ezmetro/EZSAW/proto/types.h:22:9: note: ‘Unit::JOULE’ declared here
+   22 |         JOULE = 6, MM_SEC, NEWTON, DEG, MBAR, DEGREE
+      |         ^~~~~
+/home/bremner/Documents/shared/projects/ezmetro/EZSAW/proto/main.cpp:8:29: error: ‘DRIVER_FRONT’ was not declared in this scope; did you mean ‘DoorType::DRIVER_FRONT’?
+    8 |         DoorEntry j(Jaguar, DRIVER_FRONT, f);
+      |                             ^~~~~~~~~~~~
+      |                             DoorType::DRIVER_FRONT
+/home/bremner/Documents/shared/projects/ezmetro/EZSAW/proto/types.h:9:9: note: ‘DoorType::DRIVER_FRONT’ declared here
+    9 |         DRIVER_FRONT, DRIVER_REAR, TRUNK, PASSENGER_REAR, PASSENGER_FRONT, HOOD
+      |         ^~~~~~~~~~~~
+make[2]: *** [CMakeFiles/ezsaw_proto1.dir/build.make:76: CMakeFiles/ezsaw_proto1.dir/main.cpp.o] Error 1
+make[1]: *** [CMakeFiles/Makefile2:83: CMakeFiles/ezsaw_proto1.dir/all] Error 2
+make: *** [Makefile:91: all] Error 2
