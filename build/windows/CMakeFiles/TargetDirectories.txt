@@ -1,0 +1,3 @@
+C:/Users/bremn/source/repos/ezsaw/build/windows/CMakeFiles/ezsaw_proto1.dir
+C:/Users/bremn/source/repos/ezsaw/build/windows/CMakeFiles/ALL_BUILD.dir
+C:/Users/bremn/source/repos/ezsaw/build/windows/CMakeFiles/ZERO_CHECK.dir
