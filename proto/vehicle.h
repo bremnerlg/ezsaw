@@ -4,12 +4,10 @@
 /* Supporting data structures for vehicle entries */
 
 struct Date {
-private:
 	int day, month, year;
 	static const int MAX_DAY = 31;
 	static const int MAX_MONTH = 12;
 
-public:
 	Date(int y, int m, int d)
 	{
 		if (d > MAX_DAY)
@@ -25,7 +23,7 @@ public:
 };
 
 
-struct Vehicle {
+class Vehicle {
 private:
 	std::string VIN; /* possibly will make a VIN type to validate input */
 	std::string Make;
@@ -34,11 +32,25 @@ private:
 	int Age;
 	/* possible date type ? */
 public:
+
+	/* getters */
+	const std::string& vin() { return VIN; }
+	const std::string& Make() { return Make; }
+	const std::string& Model() { return Model; }
+
+
+	/* setters */
+	void resetVin(const std::string& v) 
+	{
+		if (v.size() != 17
+	}
 	Date ManDate;
 	Vehicle(std::string v, std::string ma,
 		std::string mo, int a, int y, int m,
 		int d)
 	: VIN(v), Make(ma), Model(mo), Age(a), ManDate(y, m, d)
-	{ }
+	{ 
+		if (v.size() != )
+	}
 };
 
