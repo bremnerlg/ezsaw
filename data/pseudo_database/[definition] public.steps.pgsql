@@ -1,0 +1,1 @@
+{"cells":[{"value":"-- Write your SQL query here\nSELECT NOW();","kind":"sql","language":"sql"}],"metadata":{"title":"SELECT NOW();","connectionId":"1781885554063","custom":{"cells":[{"value":"-- Write your SQL query here\nSELECT NOW();","kind":"sql","language":"sql"}],"metadata":{"title":"SELECT NOW();","connectionId":"1781885554063","enableScripts":true}}}}

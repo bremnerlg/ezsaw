@@ -1,4 +1,4 @@
-/*  */%% Data
+% Data
 close all
 SampleSize = 50;
 
@@ -179,7 +179,7 @@ reds=[];
 for i=1:SampleSize
     TolUp(i) = a_Hinge_Friction*Hinge(i) + b_Hinge_Friction + 2*Std_Friction;
     TolDwn(i) = a_Hinge_Friction*Hinge(i) + b_Hinge_Friction - 2*Std_Friction;
-    
+
     if (Friction(i) > TolUp(i))|(Friction(i) < TolDwn(i))
         if isempty(reds)
             reds = i;
@@ -305,9 +305,9 @@ reds=[];
 for i=1:SampleSize
     TolUp(i) = a_Force_Speed*Force(i) + b_Force_Speed + 2*Std_FO_Speed;
     TolDwn(i) = a_Force_Speed*Force(i) + b_Force_Speed - 2*Std_FO_Speed;
-    
+
     if (FO_Speed(i) > TolUp(i))|(FO_Speed(i) < TolDwn(i))
-        
+
         if isempty(reds)
             reds = i;
         else
