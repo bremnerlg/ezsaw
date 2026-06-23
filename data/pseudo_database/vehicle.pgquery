@@ -1,0 +1,128 @@
+-- Object:    public.vehicle
+-- Type:      TABLE
+-- Database:  ezsaw_proto
+-- Generated: 2026-06-23T18:15:02.212Z
+-- Lines:     28
+
+CREATE TABLE "public"."vehicle" (
+    "vin" character varying(17) NOT NULL,
+    "make" text,
+    "model" text,
+    "body" auto_body_t,
+    "manufacture_date" date
+)
+
+TABLESPACE "pg_default";
+
+ALTER TABLE IF EXISTS "public"."vehicle" OWNER TO "postgres";
+
+
+-- Constraints
+ALTER TABLE ONLY "public"."vehicle" ADD CONSTRAINT "vehicle_key" PRIMARY KEY (vin);
+
+
+-- Privileges
+GRANT DELETE ON TABLE "public"."vehicle" TO "postgres";
+GRANT INSERT ON TABLE "public"."vehicle" TO "postgres";
+GRANT REFERENCES ON TABLE "public"."vehicle" TO "postgres";
+GRANT SELECT ON TABLE "public"."vehicle" TO "postgres";
+GRANT TRIGGER ON TABLE "public"."vehicle" TO "postgres";
+GRANT TRUNCATE ON TABLE "public"."vehicle" TO "postgres";
+GRANT UPDATE ON TABLE "public"."vehicle" TO "postgres";
+
+-- Down operation
+-- DROP TABLE "public"."vehicle" CASCADE;
+
+INSERT INTO "public"."vehicle" ("vin", "make", "model", "body", "manufacture_date") VALUES
+('1HGCM82633A004352', 'Honda', 'Accord', 'sedan', '2021-03-15'),
+('1FTFW1ET5DFB12345', 'Ford', 'F-150', 'pickup', '2022-06-22'),
+('1G1ZT53826F789012', 'Chevrolet', 'Malibu', 'sedan', '2020-09-10'),
+('JTDKN3DU5C0123456', 'Toyota', 'Camry', 'sedan', '2021-11-30'),
+('5YJ3E1EA5KF456789', 'Tesla', 'Model 3', 'sedan', '2022-02-28'),
+('2T1BURHE0JC123456', 'Toyota', 'Corolla', 'sedan', '2021-04-17'),
+('1N4AL3AP6DC234567', 'Nissan', 'Altima', 'sedan', '2020-08-05'),
+('1VWBT7A36EC345678', 'Volkswagen', 'Passat', 'sedan', '2021-07-20'),
+('3FA6P0H73GR456789', 'Ford', 'Fusion', 'sedan', '2022-01-12'),
+('5NPE34AF3FH567890', 'Hyundai', 'Sonata', 'sedan', '2020-10-25'),
+('1G1ZD5ST5JF678901', 'Chevrolet', 'Cruze', 'sedan', '2021-05-08'),
+('19XFC2F69GE789012', 'Honda', 'Civic', 'sedan', '2022-03-14'),
+('1FADP5AU3DL890123', 'Ford', 'C-Max', 'sedan', '2020-12-03'),
+('3VWFE21C04M901234', 'Volkswagen', 'Jetta', 'sedan', '2021-08-19'),
+('KMHCT4AE5CU012345', 'Hyundai', 'Accent', 'sedan', '2022-04-21'),
+('1G1ZB5ST5HF123456', 'Chevrolet', 'Malibu', 'sedan', '2020-11-17'),
+('WAUDF78E45A234567', 'Audi', 'A4', 'sedan', '2021-06-29'),
+('JTHBK1GG1F2345678', 'Lexus', 'ES', 'sedan', '2022-05-11'),
+('1FA6P0H76G5345678', 'Ford', 'Fusion', 'sedan', '2020-07-04'),
+('5NPDH4AE0DH456789', 'Hyundai', 'Elantra', 'sedan', '2021-09-26'),
+('1HGCR2F37EA567890', 'Honda', 'Accord', 'sedan', '2022-07-08'),
+('1G11A5SL7EF678901', 'Chevrolet', 'Impala', 'sedan', '2020-06-13'),
+('WBA3A5C55CF789012', 'BMW', '3 Series', 'sedan', '2021-10-02'),
+('JTDKBRFU5G3890123', 'Toyota', 'Prius', 'sedan', '2022-08-15'),
+('3FAFP07Z2YR890123', 'Ford', 'Focus', 'sedan', '2020-05-21'),
+('1N4AB7AP7FN901234', 'Nissan', 'Sentra', 'sedan', '2021-12-30'),
+('5UXKR0C58F0123456', 'BMW', 'X5', 'SUV', '2022-09-05'),
+('1GNSK2E04ER123456', 'Chevrolet', 'Tahoe', 'SUV', '2020-04-18'),
+('JTEBU5JR4F5234567', 'Toyota', '4Runner', 'SUV', '2021-02-09'),
+('5TDBKRFH9FS234567', 'Toyota', 'Highlander', 'SUV', '2022-10-23');
+INSERT INTO "public"."steps" ("step_name", "vin", "door", "sampled", "x", "y", "upper_lim", "lower_lim", "nominal", "x_unit", "y_unit") VALUES
+-- Hinge and Doorcheck Performance (Joules vs mm/s)
+('Hinge and Doorcheck Performance (Sampled)', '1HGCM82633A004352', 'driver_front', true, 150, 95, 120, 80, 100, 'Joules', 'mm/s'),
+('Hinge and Doorcheck Performance (Sampled)', '1FTFW1ET5DFB12345', 'driver_front', true, 175, 70, 120, 80, 100, 'Joules', 'mm/s'),
+('Hinge and Doorcheck Performance (Sampled)', '1G1ZT53826F789012', 'driver_rear', true, 200, 160, 120, 80, 100, 'Joules', 'mm/s'),
+('Hinge and Doorcheck Performance (Sampled)', 'JTDKN3DU5C0123456', 'passenger_front', true, 225, 90, 120, 80, 100, 'Joules', 'mm/s'),
+('Hinge and Doorcheck Performance (Sampled)', '5YJ3E1EA5KF456789', 'passenger_rear', true, 250, 55, 120, 80, 100, 'Joules', 'mm/s'),
+('Hinge and Doorcheck Performance (Sampled)', '2T1BURHE0JC123456', 'driver_front', true, 275, 85, 120, 80, 100, 'Joules', 'mm/s'),
+('Hinge and Doorcheck Performance (Sampled)', '1N4AL3AP6DC234567', 'driver_rear', true, 150, 110, 120, 80, 100, 'Joules', 'mm/s'),
+('Hinge and Doorcheck Performance (Sampled)', '1VWBT7A36EC345678', 'passenger_front', true, 175, 65, 120, 80, 100, 'Joules', 'mm/s'),
+('Hinge and Doorcheck Performance (Sampled)', '3FA6P0H73GR456789', 'passenger_rear', true, 200, 95, 120, 80, 100, 'Joules', 'mm/s'),
+('Hinge and Doorcheck Performance (Sampled)', '5NPE34AF3FH567890', 'driver_front', true, 225, 135, 120, 80, 100, 'Joules', 'mm/s'),
+('Hinge and Doorcheck Performance (Sampled)', '1G1ZD5ST5JF678901', 'driver_rear', true, 250, 75, 120, 80, 100, 'Joules', 'mm/s'),
+('Hinge and Doorcheck Performance (Sampled)', '19XFC2F69GE789012', 'passenger_front', true, 275, 145, 120, 80, 100, 'Joules', 'mm/s'),
+('Hinge and Doorcheck Performance (Sampled)', '1FADP5AU3DL890123', 'passenger_rear', true, 150, 100, 120, 80, 100, 'Joules', 'mm/s'),
+('Hinge and Doorcheck Performance (Sampled)', '3VWFE21C04M901234', 'driver_front', true, 175, 60, 120, 80, 100, 'Joules', 'mm/s'),
+('Hinge and Doorcheck Performance (Sampled)', 'KMHCT4AE5CU012345', 'driver_rear', true, 200, 155, 120, 80, 100, 'Joules', 'mm/s'),
+('Hinge and Doorcheck Performance (Sampled)', '1G1ZB5ST5HF123456', 'passenger_front', true, 225, 80, 120, 80, 100, 'Joules', 'mm/s'),
+('Hinge and Doorcheck Performance (Sampled)', 'WAUDF78E45A234567', 'passenger_rear', true, 250, 115, 120, 80, 100, 'Joules', 'mm/s'),
+('Hinge and Doorcheck Performance (Sampled)', 'JTHBK1GG1F2345678', 'driver_front', true, 275, 150, 120, 80, 100, 'Joules', 'mm/s'),
+('Hinge and Doorcheck Performance (Sampled)', '1FA6P0H76G5345678', 'driver_rear', true, 150, 85, 120, 80, 100, 'Joules', 'mm/s'),
+('Hinge and Doorcheck Performance (Sampled)', '5NPDH4AE0DH456789', 'passenger_front', true, 175, 125, 120, 80, 100, 'Joules', 'mm/s'),
+('Hinge and Doorcheck Performance (Sampled)', '1HGCR2F37EA567890', 'passenger_rear', true, 200, 70, 120, 80, 100, 'Joules', 'mm/s'),
+('Hinge and Doorcheck Performance (Sampled)', '1G11A5SL7EF678901', 'driver_front', true, 225, 100, 120, 80, 100, 'Joules', 'mm/s'),
+('Hinge and Doorcheck Performance (Sampled)', 'WBA3A5C55CF789012', 'driver_rear', true, 250, 130, 120, 80, 100, 'Joules', 'mm/s'),
+('Hinge and Doorcheck Performance (Sampled)', 'JTDKBRFU5G3890123', 'passenger_front', true, 275, 90, 120, 80, 100, 'Joules', 'mm/s'),
+('Hinge and Doorcheck Performance (Sampled)', '3FAFP07Z2YR890123', 'passenger_rear', true, 150, 115, 120, 80, 100, 'Joules', 'mm/s'),
+('Hinge and Doorcheck Performance (Sampled)', '1N4AB7AP7FN901234', 'driver_front', true, 175, 75, 120, 80, 100, 'Joules', 'mm/s'),
+('Hinge and Doorcheck Performance (Sampled)', '5UXKR0C58F0123456', 'hatch_rear', true, 200, 140, 120, 80, 100, 'Joules', 'mm/s'),
+('Hinge and Doorcheck Performance (Sampled)', '1GNSK2E04ER123456', 'hatch_rear', true, 225, 60, 120, 80, 100, 'Joules', 'mm/s'),
+('Hinge and Doorcheck Performance (Sampled)', 'JTEBU5JR4F5234567', 'hatch_rear', true, 250, 105, 120, 80, 100, 'Joules', 'mm/s'),
+('Hinge and Doorcheck Performance (Sampled)', '5TDBKRFH9FS234567', 'hatch_rear', true, 275, 120, 120, 80, 100, 'Joules', 'mm/s'),
+
+-- Striker Alignment (Newtons vs mm/s)
+('Striker Alignment (Sampled)', '1HGCM82633A004352', 'driver_front', true, 200, 65, 150, 100, 125, 'newtons', 'mm/s'),
+('Striker Alignment (Sampled)', '1FTFW1ET5DFB12345', 'driver_front', true, 225, 175, 150, 100, 125, 'newtons', 'mm/s'),
+('Striker Alignment (Sampled)', '1G1ZT53826F789012', 'driver_rear', true, 250, 90, 150, 100, 125, 'newtons', 'mm/s'),
+('Striker Alignment (Sampled)', 'JTDKN3DU5C0123456', 'passenger_front', true, 275, 155, 150, 100, 125, 'newtons', 'mm/s'),
+('Striker Alignment (Sampled)', '5YJ3E1EA5KF456789', 'passenger_rear', true, 300, 115, 150, 100, 125, 'newtons', 'mm/s'),
+('Striker Alignment (Sampled)', '2T1BURHE0JC123456', 'driver_front', true, 175, 60, 150, 100, 125, 'newtons', 'mm/s'),
+('Striker Alignment (Sampled)', '1N4AL3AP6DC234567', 'driver_rear', true, 200, 180, 150, 100, 125, 'newtons', 'mm/s'),
+('Striker Alignment (Sampled)', '1VWBT7A36EC345678', 'passenger_front', true, 225, 80, 150, 100, 125, 'newtons', 'mm/s'),
+('Striker Alignment (Sampled)', '3FA6P0H73GR456789', 'passenger_rear', true, 250, 145, 150, 100, 125, 'newtons', 'mm/s'),
+('Striker Alignment (Sampled)', '5NPE34AF3FH567890', 'driver_front', true, 275, 110, 150, 100, 125, 'newtons', 'mm/s'),
+('Striker Alignment (Sampled)', '1G1ZD5ST5JF678901', 'driver_rear', true, 300, 70, 150, 100, 125, 'newtons', 'mm/s'),
+('Striker Alignment (Sampled)', '19XFC2F69GE789012', 'passenger_front', true, 175, 130, 150, 100, 125, 'newtons', 'mm/s'),
+('Striker Alignment (Sampled)', '1FADP5AU3DL890123', 'passenger_rear', true, 200, 165, 150, 100, 125, 'newtons', 'mm/s'),
+('Striker Alignment (Sampled)', '3VWFE21C04M901234', 'driver_front', true, 225, 95, 150, 100, 125, 'newtons', 'mm/s'),
+('Striker Alignment (Sampled)', 'KMHCT4AE5CU012345', 'driver_rear', true, 250, 185, 150, 100, 125, 'newtons', 'mm/s'),
+('Striker Alignment (Sampled)', '1G1ZB5ST5HF123456', 'passenger_front', true, 275, 105, 150, 100, 125, 'newtons', 'mm/s'),
+('Striker Alignment (Sampled)', 'WAUDF78E45A234567', 'passenger_rear', true, 300, 160, 150, 100, 125, 'newtons', 'mm/s'),
+('Striker Alignment (Sampled)', 'JTHBK1GG1F2345678', 'driver_front', true, 175, 55, 150, 100, 125, 'newtons', 'mm/s'),
+('Striker Alignment (Sampled)', '1FA6P0H76G5345678', 'driver_rear', true, 200, 125, 150, 100, 125, 'newtons', 'mm/s'),
+('Striker Alignment (Sampled)', '5NPDH4AE0DH456789', 'passenger_front', true, 225, 85, 150, 100, 125, 'newtons', 'mm/s'),
+('Striker Alignment (Sampled)', '1HGCR2F37EA567890', 'passenger_rear', true, 250, 170, 150, 100, 125, 'newtons', 'mm/s'),
+('Striker Alignment (Sampled)', '1G11A5SL7EF678901', 'driver_front', true, 275, 100, 150, 100, 125, 'newtons', 'mm/s'),
+('Striker Alignment (Sampled)', 'WBA3A5C55CF789012', 'driver_rear', true, 300, 190, 150, 100, 125, 'newtons', 'mm/s'),
+('Striker Alignment (Sampled)', 'JTDKBRFU5G3890123', 'passenger_front', true, 175, 75, 150, 100, 125, 'newtons', 'mm/s'),
+('Striker Alignment (Sampled)', '3FAFP07Z2YR890123', 'passenger_rear', true, 200, 140, 150, 100, 125, 'newtons', 'mm/s'),
+('Striker Alignment (Sampled)', '1N4AB7AP7FN901234', 'driver_front', true, 225, 65, 150, 100, 125, 'newtons', 'mm/s'),
+('Striker Alignment (Sampled)', '5UXKR0C58F0123456', 'hatch_rear', true, 250, 150, 150, 100, 125, 'newtons', 'mm/s'),
+('Striker Alignment (Sampled)', '1GNSK2E04ER123456', 'hatch_rear', true, 275, 120, 150, 100, 125, 'newtons', 'mm/s')

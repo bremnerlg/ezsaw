@@ -1,0 +1,74 @@
+name: Local Ollama Config
+version: 0.0.1
+schema: v1
+
+models:
+  # ---------------- Chat Model ----------------
+  - name: minimax m3:Cloud
+    provider: ollama
+    model: minimax-m3:Cloud
+    roles:
+      - chat
+      - edit
+  - name: Llama 3.1 8B (Local)
+    provider: ollama
+    model: llama3.1:8b
+    roles:
+      - chat
+      - edit
+    # Best general-purpose reasoning + code generation in this stack
+    contextLength: 8192
+    completionOptions:
+      temperature: 0.7
+      topP: 0.9
+      numCtx: 8192
+  
+  - name: Qwen 2.5 Coder 7B (Local)
+    provider: ollama
+    model: qwen2.5-coder:7b
+    roles:
+      - chat
+      - edit
+    contextLength: 8192
+  - name: Qwen 2.5 Coder 1.5B (Local)
+    provider: ollama
+    model: qwen2.5-coder:1.5b-base
+    roles:
+      - autocomplete
+    # Tiny, blazing fast — perfect for inline code completions
+    contextLength: 32768
+    completionOptions:
+      temperature: 0.2
+
+  # ---------------- Embeddings Model ----------------
+
+  - name: Nomic Embed Text (Local)
+    provider: ollama
+    model: nomic-embed-text:latest
+    roles:
+      - embed
+    # Used for codebase indexing and @codebase RAG queries
+
+# ---------------- Tab Autocomplete ----------------
+
+tabAutocompleteModel:
+  name: Qwen 2.5 Coder 1.5B (Local)
+  provider: ollama
+  model: qwen2.5-coder:1.5b-base
+  contextLength: 32768
+  debounceDelay: 400
+
+# ---------------- Embeddings Provider (for indexing) ----------------
+
+embeddingsProvider:
+  name: Nomic Embed Text (Local)
+  provider: ollama
+  model: nomic-embed-text:latest
+
+# ---------------- RAG / Codebase Context ----------------
+
+# Codebase indexing will automatically use the embeddings provider above.
+# Use the `@codebase` symbol in chat to query your indexed repository.
+
+experimental:
+  enableExperimentalCapabilities: true

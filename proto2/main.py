@@ -10,51 +10,57 @@ def in_tolerance(vin: str):
 '''
 
 class test_case:
-    def __init__(self, result: float, upper_limit: float, lower_limit: float, ):
-        self.__result = result
-        self.__upper_limit = upper_limit 
-        self.__lower_limit = lower_limit
-        if result < lower_limit or result > upper_limit:
-            self.__out_of_tolerance = True
-            
+    def __init__(self, y: float, upper: float, lower: float):
+       self.result = y
+       self.upper_limit = upper
+       self.lower_limit = lower
+       if self.result < self.lower_limit or self.result > self.upper_limit:
+            self.out_of_tolerance = True
+       else:
+            self.out_of_tolerance = False 
 
 
 
-def pull_decimal(sql_entry: str) -> float | None: # convert the sql output string to float
+def pull_decimal(sql_entry: str) -> float | None: # convert the sql output string to float group
     match = re.search(r'?*\d+\.\d+', sql_entry)
     if match:
         return float(match.group())
     return None
 
-def find_outliers()
 
-def in_tolerance(y, upper, lower) -> bool:
-    if float(y) > float(upper) or float(y) < (lower):
-        return False
-    return True
 
-def vin_fetch(vin: str) -> tuple: # return is of form ((y1, lower1, upper1), (y2, lower2, upper2), ...)
+def vin_fetch(vin: str) -> list: # return is of form ((y1, lower1, upper1), (y2, lower2, upper2), ...)
     conn = psycopg.connect(
-        dbname="learning_db",
+        dbname="ezsaw_proto",
         user="postgres",
         password="postgres",
         host="localhost"
     )
     cur = conn.cursor()
-
-    cur.execute ("SELECT y, lower, upper FROM steps WHERE vin = '" + vin + "'")
+    # painful reminder that for some reason I decided to put lower before upper
+    cur.execute ("SELECT y, upper_lim, lower_lim, step_name FROM steps WHERE vin = '" + vin + "'")
     return cur.fetchall()  # return of a tuple of the VINs occurences in the steps table
 
 
 def main():
     user_in = str(input("Enter a VIN: "))
 
+    i_cnt = 0
     results = vin_fetch(user_in)
-    if results == None:
+    if results == []:
         raise ValueError("VIN not found in database") 
     else:
-        print("All results:")
-        print(results)
-        print("First result")
-        print(results[0][0])
+        print("Unsorted: " + str(results))
+        for i in results:
+            test_results = test_case(i[0], i[1], i[2]) # assign a test case with y, upper_lim, lower_lim
+            i_cnt = i_cnt + 1
+            if test_results.out_of_tolerance:
+                print(str(i[4]) + ": failed.")
+            else:
+                print(str(i[4]) + ": passed")
+
+            print("Vehicle: " + user_in + ", set " + str(i_cnt))
+            print("y val: " + str(test_results.result) + "\n" 
+                  "upper_lim: " + str(test_results.upper_limit) + "\n" 
+                  "lower_lim: " + str(test_results.lower_limit))
 main()
