@@ -5,10 +5,14 @@ The goal of this program is to present outliers for a given vehicle's door measu
 
 The basic functionality looks like this
 1. A menu of possible vehicle makes are displayed to the user.
+    - It is vendor specific 
 
 2. The user selects vehicle make, then is taken through a series of steps where they select the model, model type, door type, VIN of specific vehicle to analyze.
+    - Create support for a configuration file to direct the queries. (e.g. if step n1 is out-of-tolerance, then check n4, n8, n10, n...)
+3. The user is taken through a series of datasets pulled from SQL database. If a certain result is returned  then formatted, showing where the vehicle is outside of ideal tolerances for door test resutlts, and gives an explanation for why.
 
-3. The user is taken through a series of datasets pulled from SQL database, then formatted, showing where the vehicle is outside of ideal tolerances for door test resutlts, and gives an explanation for why.
+Note: For graphs unlabeled x axis indicates the sample number of the result. (Think of a bar chart). 
+
 
 ## Modules
 There are a few main components to verion 1.0.0 of this CLI implementation.

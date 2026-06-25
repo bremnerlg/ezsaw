@@ -30,18 +30,6 @@ models:
       - chat
       - edit
     contextLength: 8192
-  - name: Qwen 2.5 Coder 1.5B (Local)
-    provider: ollama
-    model: qwen2.5-coder:1.5b-base
-    roles:
-      - autocomplete
-    # Tiny, blazing fast — perfect for inline code completions
-    contextLength: 32768
-    completionOptions:
-      temperature: 0.2
-
-  # ---------------- Embeddings Model ----------------
-
   - name: Nomic Embed Text (Local)
     provider: ollama
     model: nomic-embed-text:latest
