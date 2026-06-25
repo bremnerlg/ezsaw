@@ -1,2 +1,3 @@
 .vs/
 *.vsidx
+src/proto2/gui_setup.py
