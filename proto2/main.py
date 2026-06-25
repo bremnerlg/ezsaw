@@ -1,6 +1,6 @@
 import psycopg
 import pandas as pd
-rom io import StringIO
+from io import StringIO
 import re
 '''
 def fetch_dataset(step_name: str):
