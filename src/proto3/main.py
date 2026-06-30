@@ -44,7 +44,9 @@ def vin_fetch(vin: str) -> list: # return is of form ((y1, lower1, upper1), (y2,
     return cur.fetchall()  # return of a tuple of the VINs occurences in the steps table
 
 
-
+'''
+# Debugging interface, CLI based in case needed.
+# Replaced by kivy GUI
 def main():
     user_in = str(input("Enter a VIN: "))
 
@@ -72,3 +74,4 @@ def main():
                   "upper_lim: " + str(test_results.upper_limit) + "\n" 
                   "lower_lim: " + str(test_results.lower_limit) + "\n")
 main()
+'''
