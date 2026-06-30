@@ -2,7 +2,7 @@
 EZSAW VERSION 3.0.0A
 INTRODUCING A GUI FRONTEND 
 '''
-
+import vin_fetch 
 from kivy.app import App
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.gridlayout import GridLayout
@@ -54,18 +54,23 @@ Builder.load_string('''
             text_size: self.width-20, self.height-20
             valign: 'center'
         TextInput:
+            id: vin_input
             focus: True
-            text_size: self.width-20, self.height-20
+            text_size: self.width-20, self.height-200
+            multiline: False
 
 ''')
 
 
 class RootWidget(FloatLayout):
+    def vin_input(self, instance, value):
+        print(f"Fetching vehicle info...")
     pass
 
 class ezsaw_proto(App):
     def build(self):
         return RootWidget()
+    
 
 if __name__ == '__main__':
     ezsaw_proto().run()
