@@ -12,10 +12,13 @@ def in_tolerance(vin: str):
 
 
 class test_case:
-    def __init__(self, y: float, upper: float, lower: float):
+    def __init__(self, step_name: str, y: float, 
+    lower: float, upper: float, v: str):
+       self.name = step_name
        self.result = y
-       self.upper_limit = upper
        self.lower_limit = lower
+       self.upper_limit = upper
+       self.vin = v
        if self.result < self.lower_limit or self.result > self.upper_limit:
             self.out_of_tolerance = True
        else:
@@ -29,9 +32,7 @@ def pull_decimal(sql_entry: str) -> float | None: # convert the sql output strin
         return float(match.group())
     return None
 
-
-
-def vin_fetch(vin: str) -> list: # return is of form ((y1, lower1, upper1), (y2, lower2, upper2), ...)
+def vin_fetch(vin: str, fields: list, table: str) -> tuple:
     conn = psycopg.connect(
         dbname="ezsaw_proto",
         user="postgres",
@@ -40,18 +41,11 @@ def vin_fetch(vin: str) -> list: # return is of form ((y1, lower1, upper1), (y2,
     )
     cur = conn.cursor()
     # painful reminder that for some reason I decided to put lower before upper
-    cur.execute ("SELECT y, upper_lim, lower_lim, step_name FROM steps WHERE vin = '" + vin + "'")
+    cur.execute ('SELECT ' + ", ".join(fields) + ' FROM ' + table)
     return cur.fetchall()  # return of a tuple of the VINs occurences in the steps table
 
-
-'''
-# Debugging interface, CLI based in case needed.
-# Replaced by kivy GUI
-def main():
-    user_in = str(input("Enter a VIN: "))
-
+def results_dump(results):
     i_cnt = 0
-    results = vin_fetch(user_in)
     if results == []:
         raise ValueError("VIN not found in database") 
     else:
@@ -59,19 +53,23 @@ def main():
         # print("\n\n")
 
         print("\n\n---------TEST_RESULTS----------")
-        print("Vehicle: " + user_in)
         for i in results:
-            test_results = test_case(i[0], i[1], i[2]) # assign a test case with y, upper_lim, lower_lim
+            test_results = test_case(i[0], i[1], i[2], i[3], i[4])
             i_cnt = i_cnt + 1
 
+            print("Set #" + str(i_cnt))
             if test_results.out_of_tolerance:
-                print(str(i[3]) + ": failed.")
+                print(str(i[0]) + ": failed.")
             else:
-                print(str(i[3]) + ": passed")
+                print(str(i[0]) + ": passed")
 
-            print("Set " + str(i_cnt))
-            print("y val: " + str(test_results.result) + "\n" 
+            print("VIN: " + str(test_results.vin) + "\n"
+                  "y val: " + str(test_results.result) + "\n" 
                   "upper_lim: " + str(test_results.upper_limit) + "\n" 
                   "lower_lim: " + str(test_results.lower_limit) + "\n")
+
+
+def main():
+    std_fields = ['step_name', 'y', 'lower_lim', 'upper_lim', 'vin']
+    results_dump(vin_fetch('1VWBT7A36EC345678', std_fields, 'steps'))
 main()
-'''
