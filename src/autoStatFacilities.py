@@ -12,20 +12,35 @@ def in_tolerance(vin: str):
 AUTO_STAT_FIELDS = ('auto_door_stat_name', 'result_x', 'result_x_unit', 'result_y_lower_lim',
                     'result_y', 'result_y_upper_lim', 'result_y_unit', 'vin')
 
+'''
+pull_decimal():
+This is quite possibly the most unneccessary function here, as it seems data types
+are actually retained by psycopg and autoparsed through to python upon the execution
+of a SELECT statement. Good to know!!
+'''
 def pull_decimal(sql_entry: str) -> float | None: # convert the sql output string to float group
+    print(f'[DBG] pull_decimal sql_entry: ')
+    print(sql_entry)
     match = re.search(r'?*\d+\.\d+', sql_entry)
     if match:
         return float(match.group())
     return None
 
+'''
+vin_fetch_outliers():
+Fetches the failed results for which a given vehicles dependant variables falls out of tolerances. 
+The psycopg syntax makes this rather nonobvious through no fault of it's own.
+'''
+def vin_fetch_outliers(vin: str, fields: tuple = AUTO_STAT_FIELDS, 
+                        table1: str = 'auto_door_stats', table2: str = 'steps') -> list:
 
-def vin_fetch_outliers(vin: str, fields: tuple, table1: str, table2: str) -> list:
     conn = psycopg.connect( # eventually the JSON will be where the db server config is pulled from
-        dbname="ezsaw3",
+        dbname="ezsaw3",    # Probably will be done by means of helper function(s)
         user="postgres",
         password="postgres",
         host="localhost"
     )
+
     cur = conn.cursor()
     # painful reminder that for some reason I decided to put lower before upper
     cur.execute ('SELECT ' + ", ".join(fields) + ' FROM ' + table1 + ' JOIN ' + table2 + ' ON ' + table1 + '.auto_door_stat_id' + ' = ' + 
@@ -33,15 +48,20 @@ def vin_fetch_outliers(vin: str, fields: tuple, table1: str, table2: str) -> lis
 
     return cur.fetchall()  # return of a tuple of the VINs occurences in the steps table
 
+'''
+test_case:
+A structure to help with internal referencing of data mostly. At this time it is unknown if
+there will be a high performance price with this class implementation... 
+'''
 class test_case:
     def __init__(self, test_name, x, x_unit, 
                 y_low, y, y_high, y_unit, vin):
        self.name = test_name 
-       self.result_x = pull_decimal(x)
+       self.result_x = x
        self.result_x_unit = unit_x 
-       self.result_y_lower = pull_decimal(y_low)
-       self.result_y = pull_decimal(y)
-       self.result_y_upper = pull_decimal(y_high)
+       self.result_y_lower = y_low
+       self.result_y = y
+       self.result_y_upper = y_high
        self.result_y_unit = y_unit
        self.vehicle = vin
 
@@ -55,8 +75,8 @@ init_test_case():
 Wrapper function to make the test case instances cleaner
 Strongly depends on the AUTO_STAT_FIELDS to remain the same.
 '''
-def init_test_case(st: tuple) -> test_case:
-    return test_case(st[0], st[1], st[2], st[3], st[4], st[5], st[6], st[7])
+def init_test_case(st: tuple, vin: str) -> test_case:
+    return test_case(st[0], st[1], st[2], st[3], st[4], st[5], st[6], vin)
 
 def results_dump(results):
     i_cnt = 0

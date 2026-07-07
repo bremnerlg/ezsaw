@@ -28,10 +28,13 @@ class intro_form(QDialog):
 
 
     def display_entry_table(self, vin: str):
-        outliers = vin_fetch_outliers(self.edit.text(), AUTO_STAT_FIELDS, 'auto_door_stats', 'steps')
+        vin_selected = self.edit.text()
+        outliers = vin_fetch_outliers(vin_selected, AUTO_STAT_FIELDS, 'auto_door_stats', 'steps')
+        print("[DBG] Query Return: ")
+        print(outliers)
         print("\n\n---------TEST_RESULTS----------")
         for i in outliers:
-            test_results = init_test_case(i)
+            test_results = init_test_case(i, vin_selected)
             i_cnt = i_cnt + 1
 
             print(str(i[0]) + ': FAILED.')
