@@ -7,7 +7,7 @@ The dependencies for this program are python3 (Version 3.12.3, python3-full pack
 ```
 sudo apt install postgresql python3-full
 python3 -m venv [insert venv name]
-path/to/venv/bin/pip install pandas psycopg PyQt6 pyqtgraph
+path/to/venv/bin/pip install pandas psycopg PyQt6 pyqtgraph macropy
 ```
 
 Once the needed packages are installed, you must recreate the database server on your local network using data/pseudo_database/ezsaw_tables.pgsql. I will not go into the specifics of how to set this up, as it is different for how each tester wants to configure his machine.
