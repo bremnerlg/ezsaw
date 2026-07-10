@@ -63,19 +63,20 @@ class intro_form(QMainWindow):
         self.plot = pg.PlotWidget()
         layout.addWidget(self.plot)
         
-        self.stat_selection = []
+        self.stats_selection = []
         self.current_stat = 0
 
         self.setLayout(layout)
 
-        self.button_prev.clicked.connect(self.plot_prev)
-        self.button_next.clicked.connect(self.plot_next)
+        # self.button_prev.clicked.connect(self.plot_prev)
+        # self.button_next.clicked.connect(self.plot_next)
         self.button_enter.clicked.connect(self.init_plots)
 
     def cache_relevant_stats(self):
-        outliers = fetch_vin_outliers(self.edit_vin.text())
+        vin_selected = self.edit_vin.text()
+        outliers = vin_fetch_outliers(vin_selected)
         for outlier in outliers:
-            self.stat_selection.append(init_test_case(outlier))
+            self.stats_selection.append(init_test_case(outlier, vin_selected))
 
     def plot_selection(stat: test_case):
         stats_matrix = matricize_test_cases(join_stat_with_table(stat))
@@ -101,10 +102,10 @@ class intro_form(QMainWindow):
         self.cache_relevant_stats()
 
 
-        self.stat_selection = self.relevant_stats[current]
+        self.stats_selection = self.relevant_stats[current]
         outliers_raw = vin_fetch_outliers(vin_selected)
 
-        stat = init_test_case(outliers_raw[0], vin_selected)
+        init_stat = init_test_case(outliers_raw[current], vin_selected)
         stat.print()
         # print('related stats confirmation: ')
         # print(join_stat_with_table(outlier_stat))

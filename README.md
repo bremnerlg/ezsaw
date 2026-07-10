@@ -23,6 +23,6 @@ To install pip dependencies, you can either opt for a venv or simply install to 
 
 In powershell, execute:
 ```
-pip install pandas psycopg PyQt6 pyqtgraph
+pip install pandas numpy psycopg[binary] PyQt5 pyqtgraph
 ```
 and you will have all of the needed Python dependencies.
