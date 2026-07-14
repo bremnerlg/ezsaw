@@ -7,17 +7,20 @@
   "EZ_VEHICLES_MAN_DATE_FIELD": "manufacture_date",
   "EZ_STAT_TABLE_NAME": "auto_door_stats",
   "EZ_STAT_TABLE_PK": "auto_door_stat_id",
+  "EZ_STAT_NAME_FIELD": "auto_door_stat_name",
+  "EZ_STAT_SAMPLED_FIELD": "sampled",
   "EZ_STAT_TWO_VAR_FIELD": "two_var",
   "EZ_STAT_INDEPENDENT_VAR_FIELD": "result_x",
   "EZ_STAT_INDEPENDENT_VAR_UNIT_FIELD": "result_x_unit",
   "EZ_STAT_DEPENDENT_VAR_LOWER_LIM_FIELD": "result_y_lower_lim",
   "EZ_STAT_DEPENDENT_VAR_FIELD": "result_y",
-  "EZ_STAT_DEPENDENT_VAR_UPPER_LIM_FIELD": "result_y_upper",
+  "EZ_STAT_DEPENDENT_VAR_UPPER_LIM_FIELD": "result_y_upper_lim",
   "EZ_STAT_DEPENDENT_VAR_UNIT_FIELD": "result_y_unit",
   "EZ_JOINT_TABLE_NAME": "steps",
+  "EZ_JOINT_TABLE_STAT_FK": "fk_steps_auto_door_stats",
   "EZ_JOINT_TABLE_DOOR_LOCATION_FIELD": "door",
   "EZ_PG_DB": "ezsaw3",
   "EZ_PG_USER": "postgres",
-  "EZ_PG_PASS": "postgress",
-  "EZ_PG_HOST": "postgres"
+  "EZ_PG_PASS": "postgres",
+  "EZ_PG_HOST": "localhost"
 }

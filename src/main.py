@@ -1,5 +1,5 @@
 '''
-EZSAW V3.1.0A PYQT Edition
+EZSAW V3.1.2A PYQT Edition
 ABANDONING KIVY.
 '''
 import sys

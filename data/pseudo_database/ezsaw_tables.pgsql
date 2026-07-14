@@ -8,7 +8,7 @@ CREATE TABLE vehicles (
     model text,
     body auto_body_t,
     manufacture_date date,
-    CONSTRAINT vehicle_key PRIMARY KEY (vin),
+    CONSTRAINT vehicle_pk PRIMARY KEY (vin),
     CONSTRAINT vehicle_vin_unique UNIQUE (vin)
 );
 
@@ -24,14 +24,14 @@ CREATE TABLE auto_door_stats (
     result_y numeric,
     result_y_upper_lim numeric,
     result_y_unit measure_unit_t,
-    CONSTRAINT auto_door_stat_key PRIMARY KEY (auto_door_stat_id)
+    CONSTRAINT auto_door_stats_pk PRIMARY KEY (auto_door_stat_id)
 );
 
 CREATE TABLE steps (
     vin varchar(17) REFERENCES vehicles(vin), 
     door door_t,
-    auto_door_stat bigint REFERENCES auto_door_stats(auto_door_stat_id),
-    CONSTRAINT step_key PRIMARY KEY (vin, door, auto_door_stat)
+    fk_steps_auto_door_stats bigint REFERENCES auto_door_stats(auto_door_stat_id),
+    CONSTRAINT steps_pk PRIMARY KEY (vin, door, auto_door_stat)
 );
 -- ============================================
 -- VEHICLES (the cars being tested)
