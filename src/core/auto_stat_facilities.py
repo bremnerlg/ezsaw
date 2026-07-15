@@ -4,7 +4,7 @@ import json
 import numpy as np
 from pathlib import Path
 
-_CONFIG_DIR = Path(__file__).resolve().parent.parent / 'config'
+_CONFIG_DIR = Path(__file__).resolve().parent.parent.parent / 'config'
 DB_CONFIG_FILE_PATH = _CONFIG_DIR / 'db_config.json'
 
 def load_db_config():
@@ -47,7 +47,7 @@ class test_case:
         else:
             self.out_of_tolerance = False
 
-    def print(self):
+    def describe(self):
         print(
             f'Test Case: {self.name}\n'
             f'result_x: {self.result_x}\n'
@@ -102,6 +102,53 @@ def vin_query(vin, config=None):
     try:
         with conn.cursor() as cur:
             cur.execute(query, (vin,))
+            cols = [desc[0] for desc in cur.description]
+            return [dict(zip(cols, row)) for row in cur.fetchall()]
+    finally:
+        conn.close()
+
+
+def build_stat_family_query(config):
+    joint   = config['EZ_JOINT_TABLE_NAME']
+    stat    = config['EZ_STAT_TABLE_NAME']
+    fk      = config['EZ_JOINT_TABLE_STAT_FK']
+    stat_pk = config['EZ_STAT_TABLE_PK']
+    vin_pk  = config['EZ_VEHICLES_PK']
+    door    = config['EZ_JOINT_TABLE_DOOR_LOCATION_FIELD']
+    name    = config['EZ_STAT_NAME_FIELD']
+    x       = config['EZ_STAT_INDEPENDENT_VAR_FIELD']
+    x_unit  = config['EZ_STAT_INDEPENDENT_VAR_UNIT_FIELD']
+    y_low   = config['EZ_STAT_DEPENDENT_VAR_LOWER_LIM_FIELD']
+    y       = config['EZ_STAT_DEPENDENT_VAR_FIELD']
+    y_high  = config['EZ_STAT_DEPENDENT_VAR_UPPER_LIM_FIELD']
+    y_unit  = config['EZ_STAT_DEPENDENT_VAR_UNIT_FIELD']
+
+    return f"""
+    SELECT
+        {joint}.{door}   AS door_location,
+        {stat}.{name}    AS test_name,
+        {stat}.{x}       AS result_x,
+        {stat}.{x_unit}  AS result_x_unit,
+        {stat}.{y_low}   AS result_y_lower_lim,
+        {stat}.{y}       AS result_y,
+        {stat}.{y_high}  AS result_y_upper_lim,
+        {stat}.{y_unit}  AS result_y_unit,
+        {joint}.{vin_pk} AS vin
+    FROM {joint}
+    JOIN {stat} ON {joint}.{fk} = {stat}.{stat_pk}
+    WHERE {stat}.{name} = %s
+    AND {joint}.{door} = %s
+    """
+
+
+def fetch_stat_family(test_name, door_location, config=None):
+    if config is None:
+        config = PGDB_CONFIG
+    query = build_stat_family_query(config)
+    conn = ezsaw_default_connect()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(query, (test_name, door_location))
             cols = [desc[0] for desc in cur.description]
             return [dict(zip(cols, row)) for row in cur.fetchall()]
     finally:
@@ -164,7 +211,7 @@ def main():
     test_cases = init_test_case_list(selection)
     print(f'\nFound {len(test_cases)} outlier(s) for VIN {vin_entry}:\n')
     for tc in test_cases:
-        tc.print()
+        tc.describe()
 
 
 if __name__ == '__main__':

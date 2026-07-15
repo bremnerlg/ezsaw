@@ -10,7 +10,7 @@ python3 -m venv [insert venv name]
 path/to/venv/bin/pip install pandas psycopg PyQt6 pyqtgraph macropy
 ```
 
-Once the needed packages are installed, you must recreate the database server on your local network using data/pseudo_database/ezsaw_tables.pgsql. I will not go into the specifics of how to set this up, as it is different for how each tester wants to configure his machine.
+Once the needed packages are installed, you must recreate the database server on your local network using the SQL schemas in `db/` (e.g. `db/ezsaw_tables.sql`). I will not go into the specifics of how to set this up, as it is different for how each tester wants to configure his machine.
 
 In these stages it is recommended that if you desire to work on the prototypes, you should have an IDE with a Python3 debugger such as VSCodium so you can easily reset and retrace issues as you come up.
 

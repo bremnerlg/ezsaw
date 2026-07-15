@@ -1,4 +1,9 @@
 .vs/
+.vscode/
 .continue/
 *.vsidx
 __pycache__/
+*.pyc
+.pytest_cache/
+venvs/
+data/pseudo_database/
