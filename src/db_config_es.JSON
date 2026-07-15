@@ -1,0 +1,36 @@
+{
+  "EZ_VEHICLES_TABLE_NAME": "vehículos",
+  "EZ_VEHICLES_PK": "matrícula",
+  "EZ_VEHICLES_MAKE_FIELD": "marca",
+  "EZ_VEHICLES_MODEL_FIELD": "modelo",
+  "EZ_VEHICLES_BODY_TYPE_FIELD": "tipocarrocería",
+  "EZ_VEHICLES_MAN_DATE_FIELD": "fecha_fabricación",
+  "EZ_STAT_TABLE_NAME": "estadísticas_puertas_vehículos",
+  "EZ_STAT_TABLE_PK": "id_estadística_puerta_vehículo",
+  "EZ_STAT_NAME_FIELD": "nombre_estadística_puerta_vehículo",
+  "EZ_STAT_SAMPLED_FIELD": "muestreado",
+  "EZ_STAT_TWO_VAR_FIELD": "dos_variables",
+  "EZ_STAT_INDEPENDENT_VAR_FIELD": "resultado_x",
+  "EZ_STAT_INDEPENDENT_VAR_UNIT_FIELD": "unidad_resultado_x",
+  "EZ_STAT_DEPENDENT_VAR_LOWER_LIM_FIELD": 
+"límite_inferior_resultado_y",
+  "EZ_STAT_DEPENDENT_VAR_FIELD": "resultado_y",
+  "EZ_STAT_DEPENDENT_VAR_UPPER_LIM_FIELD": 
+"límite_superior_resultado_y",
+  "EZ_STAT_DEPENDENT_VAR_UNIT_FIELD": "unidad_resultado_y",
+  "EZ_JOINT_TABLE_NAME": "pasos",
+  "EZ_JOINT_TABLE_STAT_FK": "fk_paso_estadística_puerta_vehículo",
+  "EZ_JOINT_TABLE_DOOR_LOCATION_FIELD": "ubicación puerta",
+  "EZ_JOINT_TABLE_DOOR_LOCATION_DRIVER_FRONT": 
+"delantero_conductor",
+  "EZ_JOINT_TABLE_DOOR_LOCATION_DRIVER_REAR": 
+"trasero_conductor",
+  "EZ_JOINT_TABLE_DOOR_LOCATION_PASSENGER_FRONT": 
+"delantero_viajero",
+  "EZ_JOINT_TABLE_DOOR_LOCATION_PASSENGER_REAR": "trasero_viajero",
+  "EZ_JOINT_TABLE_DOOR_LOCATION_REAR_HATCH": "maletero trasero",
+  "EZ_PG_DB": "ezsaw3_es",
+  "EZ_PG_USER": "postgres",
+  "EZ_PG_PASS": "postgres",
+  "EZ_PG_HOST": "localhost"
+}

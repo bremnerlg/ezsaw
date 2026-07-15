@@ -34,12 +34,13 @@ test_case:
 A structure to help with internal referencing of data mostly. At this time it is unknown if
 there will be a high performance price with this class implementation... 
 '''
-class DOOR_LOCATION(Enum):
-    DRIVER_FRONT = 0
-    DRIVER_REAR = 1
-    PASSENGER_FRONT = 2
-    PASSENGER_REAR = 3
-    REAR_HATCH = 4
+class door_location(Enum):
+    DRIVER_FRONT = 'driver_front'
+    DRIVER_REAR = 'driver_rear'
+    PASSENGER_FRONT = 'passenger_front'
+    PASSENGER_REAR = 'passenger_rear'
+    REAR_HATCH = 'trunk/hatch'
+    HOOD = 'hood'
 
 '''
 According to the definitions used in the ezsaw3 DB, a test case is comprised of a
@@ -48,31 +49,19 @@ step and auto_door_stat joined by the auto_door_stat_id.
 class test_case:
     def __init__(self, test_name, x, x_unit, 
                 y_low, y, y_high, y_unit, vin, dl):
-        self.vehicle = vin
-        if dl == PGDB_CONFIG['EZ_JOINT_TABLE_DOOR_LOCATION_DRIVER_FRONT']:
-            self.door_location = DOOR_LOCATION.DRIVER_FRONT
-        else if dl == PGDB_CONFIG['EZ_JOINT_TABLE_DOOR_LOCATION_DRIVER_REAR']:
-            self.door_location = DOOR_LOCATION.DRIVER_REAR
-        else if dl == PGDB_CONFIG['EZ_JOINT_TABLE_DOOR_LOCATION_PASSENGER_FRONT']:
-            self.door_location = DOOR_LOCATION.PASSENGER_FRONT
-         else if dl == PGDB_CONFIG['EZ_JOINT_TABLE_DOOR_LOCATION_PASSENGER_REAR']:
-            self.door_location = DOOR_LOCATION.PASSENGER_REAR
-       else if dl == PGDB_CONFIG['EZ_JOINT_TABLE_DOOR_LOCATION_HATCH_REAR']
-            self.door_location = DOOR_LOCATION.HATCH_REAR
+       self.vehicle = vin
+       self.location = dl
+       self.name = test_name 
+       self.result_x = x
+       self.result_x_unit = x_unit
+       self.result_y_lower = y_low
+       self.result_y = y
+       self.result_y_upper = y_high
+       self.result_y_unit = y_unit
 
-
-        self.location = dl
-        self.name = test_name 
-        self.result_x = x
-        self.result_x_unit = x_unit
-        self.result_y_lower = y_low
-        self.result_y = y
-        self.result_y_upper = y_high
-        self.result_y_unit = y_unit
-
-        if self.result_y < self.result_y_lower or self.result_y > self.result_y_upper:
+       if self.result_y < self.result_y_lower or self.result_y > self.result_y_upper:
             self.out_of_tolerance = True
-        else:
+       else:
             self.out_of_tolerance = False 
 
     def print(self):
@@ -84,7 +73,7 @@ class test_case:
         f'result_y_upper: ' + str(self.result_y_upper) + '\n' +
         f'result_y_unit: ' + str(self.result_y_unit) + '\n' +
         f'vehicle: ' + str(self.vehicle) + '\n' +
-        f'door location: ' + (self.location) + '\n')
+        f'door location: ' + str(self.location) + '\n')
 
 OUTLIERS_WITH_VIN_OF = f"""
 SELECT * FROM {PGDB_CONFIG['EZ_JOINT_TABLE_NAME']} 
@@ -94,28 +83,32 @@ SELECT * FROM {PGDB_CONFIG['EZ_JOINT_TABLE_NAME']}
     WHERE ({PGDB_CONFIG['EZ_STAT_DEPENDENT_VAR_FIELD']} <
     {PGDB_CONFIG['EZ_STAT_DEPENDENT_VAR_LOWER_LIM_FIELD']} OR
     {PGDB_CONFIG['EZ_STAT_DEPENDENT_VAR_FIELD']} >
-    {PGDB_CONFIG['EZ_STAT_DEPENDENT_VAR_UPPER_LIM_FIELD']}) AND {PGDB_CONFIG['EZ_VEHICLES_PK']} = 
+    {PGDB_CONFIG['EZ_STAT_DEPENDENT_VAR_UPPER_LIM_FIELD']}) AND {PGDB_CONFIG['EZ_VEHICLES_PK']} = %s
 """
 
 def vin_query(vin: str, query: str=OUTLIERS_WITH_VIN_OF) -> list:
     conn = ezsaw_default_connect()
-
-    curr = conn.cursor()
-    curr.execute(query + f' \'{vin}\';')
-
-    return curr.fetchall()
+    try:
+        curr = conn.cursor()
+        try:
+            curr.execute(query, (vin,))
+            return curr.fetchall()
+        finally:
+            curr.close()
+    finally:
+        conn.close()
 
 def init_test_case(raw_entry: set):
     return test_case(
-        raw_entry[str(PGDB_INDEX['EZ_STAT_NAME_FIELD'])],
-        raw_entry[float(PGDB_INDEX['EZ_STAT_INDEPENDENT_VAR_FIELD'])],
-        raw_entry[str(PGDB_INDEX['EZ_STAT_INDEPENDENT_VAR_UNIT_FIELD'])],
-        raw_entry[float(PGDB_INDEX['EZ_STAT_DEPENDENT_VAR_LOWER_LIM_FIELD'])],
-        raw_entry[float(PGDB_INDEX['EZ_STAT_DEPENDENT_VAR_FIELD'])],
-        raw_entry[float(PGDB_INDEX['EZ_STAT_DEPENDENT_VAR_UPPER_LIM_FIELD'])],
-        raw_entry[str(PGDB_INDEX['EZ_STAT_DEPENDENT_VAR_UNIT_FIELD'])],
-        raw_entry[str(PGDB_INDEX['EZ_VEHICLES_PK'])],
-        raw_entry[str(PGDB_INDEX['EZ_JOINT_TABLE_DOOR_LOCATION_FIELD'])]
+        raw_entry[int(PGDB_INDEX['EZ_STAT_NAME_FIELD'])],
+        raw_entry[int(PGDB_INDEX['EZ_STAT_INDEPENDENT_VAR_FIELD'])],
+        raw_entry[int(PGDB_INDEX['EZ_STAT_INDEPENDENT_VAR_UNIT_FIELD'])],
+        raw_entry[int(PGDB_INDEX['EZ_STAT_DEPENDENT_VAR_LOWER_LIM_FIELD'])],
+        raw_entry[int(PGDB_INDEX['EZ_STAT_DEPENDENT_VAR_FIELD'])],
+        raw_entry[int(PGDB_INDEX['EZ_STAT_DEPENDENT_VAR_UPPER_LIM_FIELD'])],
+        raw_entry[int(PGDB_INDEX['EZ_STAT_DEPENDENT_VAR_UNIT_FIELD'])],
+        raw_entry[int(PGDB_INDEX['EZ_VEHICLES_PK'])],
+        raw_entry[int(PGDB_INDEX['EZ_JOINT_TABLE_DOOR_LOCATION_FIELD'])]
     )
 
 def init_test_case_list(raw_entries: list) -> list:
@@ -125,14 +118,12 @@ def init_test_case_list(raw_entries: list) -> list:
     return test_cases
 
 # Matricize large selection of raw query data list
-def matricize_test_cases(stats: list)-> np.array:
+def matricize_test_cases(stats: list)-> np.ndarray:
     mat = np.zeros((2, len(stats)))
-    # print ('[DBG] MATRIX CHECK')
-    # print(mat)
     x = 0
     y = 1
     i = 0
-    test_case_name = stat[0].name
+    test_case_name = stats[0].name
     if test_case_name == '':
         for stat in stats:
             mat[x, i] = stat.result_x
@@ -141,12 +132,12 @@ def matricize_test_cases(stats: list)-> np.array:
     else:
         for stat in stats:
             if stat.name != test_case_name:
-                return mat
+                break
             else:
                 mat[x, i] = stat.result_x
                 mat[y, i] = stat.result_y
                 i += 1
-    return mat
+    return mat[:, :i]
 
 def main():
     vin_entry = input('Enter a VIN: ')
@@ -156,4 +147,5 @@ def main():
     for i in test_lists:
         i.print()
 
-main()
+if __name__ == '__main__':
+    main()
