@@ -1,6 +1,6 @@
 CREATE TYPE auto_body_t AS ENUM('sedan', 'coupe', 'SUV', 'pickup', 'hatchback');
 CREATE TYPE measure_unit_t AS ENUM ('sample_number', 'joules', 'newtons', 'mm/s', 'degrees', 'mbar');
-CREATE TYPE door_t AS ENUM ('delantero_conductor', 'trasero_conductor', 'delantero_viajero', 'trasero_viajero', 'maletero trasero');
+CREATE TYPE door_t AS ENUM ('delantero_conductor', 'trasero_conductor', 'delantero_viajero', 'trasero_viajero', 'maletero_trasero');
 
 CREATE TABLE vehículos (
     matrícula varchar(17),
@@ -8,8 +8,7 @@ CREATE TABLE vehículos (
     modelo text,
     tipocarrocería auto_body_t,
     fecha_fabricación date,
-    CONSTRAINT vehículos_pk PRIMARY KEY (matrícula),
-    CONSTRAINT vehículos_matrícula_unique UNIQUE (matrícula)
+    CONSTRAINT vehículos_pk PRIMARY KEY (matrícula)
 );
 
 
@@ -28,11 +27,14 @@ CREATE TABLE estadísticas_puertas_vehículos (
 );
 
 CREATE TABLE pasos (
-    matrícula varchar(17) REFERENCES vehículos(matrícula), 
+    matrícula varchar(17) REFERENCES vehículos(matrícula) ON DELETE CASCADE, 
     "ubicación puerta" door_t,
-    fk_paso_estadística_puerta_vehículo bigint REFERENCES estadísticas_puertas_vehículos(id_estadística_puerta_vehículo),
+    fk_paso_estadística_puerta_vehículo bigint REFERENCES estadísticas_puertas_vehículos(id_estadística_puerta_vehículo) ON DELETE CASCADE,
     CONSTRAINT pasos_pk PRIMARY KEY (matrícula, "ubicación puerta", fk_paso_estadística_puerta_vehículo)
 );
+
+CREATE INDEX idx_pasos_fk ON pasos(fk_paso_estadística_puerta_vehículo);
+
 -- ============================================
 -- VEHÍCULOS (los vehículos probados)
 -- ============================================
@@ -199,7 +201,7 @@ INSERT INTO pasos (matrícula, "ubicación puerta", fk_paso_estadística_puerta_
 ('3FAFP07Z2YR890123',  'trasero_viajero',         50),
 ('1N4AB7AP7FN901234',  'delantero_conductor',     51),
 ('1N4AB7AP7FN901234',  'trasero_conductor',       52),
-('5UXKR0C58F0123456',  'maletero trasero',        53),
-('1GNSK2E04ER123456',  'maletero trasero',        54),
-('JTEBU5JR4F5234567',  'maletero trasero',        55),
-('5TDBKRFH9FS234567',  'maletero trasero',        56);
+('5UXKR0C58F0123456',  'maletero_trasero',        53),
+('1GNSK2E04ER123456',  'maletero_trasero',        54),
+('JTEBU5JR4F5234567',  'maletero_trasero',        55),
+('5TDBKRFH9FS234567',  'maletero_trasero',        56);

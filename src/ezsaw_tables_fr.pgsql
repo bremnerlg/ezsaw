@@ -8,8 +8,7 @@ CREATE TABLE véhicules (
     modèle text,
     type_de_carrosserie auto_body_t,
     date_de_fabrique date,
-    CONSTRAINT véhicules_pk PRIMARY KEY (immatriculation),
-    CONSTRAINT véhicules_immatriculation_unique UNIQUE (immatriculation)
+    CONSTRAINT véhicules_pk PRIMARY KEY (immatriculation)
 );
 
 
@@ -28,11 +27,14 @@ CREATE TABLE stats_portes_automobiles (
 );
 
 CREATE TABLE étapes (
-    immatriculation varchar(17) REFERENCES véhicules(immatriculation), 
+    immatriculation varchar(17) REFERENCES véhicules(immatriculation) ON DELETE CASCADE, 
     emplacement_porte door_t,
-    fk_étape_stat_porte_auto bigint REFERENCES stats_portes_automobiles(id_stat_porte_auto),
+    fk_étape_stat_porte_auto bigint REFERENCES stats_portes_automobiles(id_stat_porte_auto) ON DELETE CASCADE,
     CONSTRAINT étapes_pk PRIMARY KEY (immatriculation, emplacement_porte, fk_étape_stat_porte_auto)
 );
+
+CREATE INDEX idx_étapes_fk ON étapes(fk_étape_stat_porte_auto);
+
 -- ============================================
 -- VÉHICULES (les véhicules testés)
 -- ============================================

@@ -8,8 +8,7 @@ CREATE TABLE voertuigen (
     model text,
     carrosserietype auto_body_t,
     fabriekdatum date,
-    CONSTRAINT voertuigen_pk PRIMARY KEY (kenteken),
-    CONSTRAINT voertuigen_kenteken_unique UNIQUE (kenteken)
+    CONSTRAINT voertuigen_pk PRIMARY KEY (kenteken)
 );
 
 
@@ -28,11 +27,14 @@ CREATE TABLE statistieken_deuren_voertuigen (
 );
 
 CREATE TABLE stappen (
-    kenteken varchar(17) REFERENCES voertuigen(kenteken), 
+    kenteken varchar(17) REFERENCES voertuigen(kenteken) ON DELETE CASCADE, 
     deurlocatie door_t,
-    fk_stap_stat_deur_voertuig bigint REFERENCES statistieken_deuren_voertuigen(id_stat_deur_voertuig),
+    fk_stap_stat_deur_voertuig bigint REFERENCES statistieken_deuren_voertuigen(id_stat_deur_voertuig) ON DELETE CASCADE,
     CONSTRAINT stappen_pk PRIMARY KEY (kenteken, deurlocatie, fk_stap_stat_deur_voertuig)
 );
+
+CREATE INDEX idx_stappen_fk ON stappen(fk_stap_stat_deur_voertuig);
+
 -- ============================================
 -- VOERTUIGEN (de geteste voertuigen)
 -- ============================================

@@ -8,8 +8,7 @@ CREATE TABLE fahrzeuge (
     modell text,
     karosserieart auto_body_t,
     herstellungsdatum date,
-    CONSTRAINT fahrzeuge_pk PRIMARY KEY (kennzeichen),
-    CONSTRAINT fahrzeuge_kennzeichen_unique UNIQUE (kennzeichen)
+    CONSTRAINT fahrzeuge_pk PRIMARY KEY (kennzeichen)
 );
 
 
@@ -28,11 +27,14 @@ CREATE TABLE statistiken_tueren_fahrzeuge (
 );
 
 CREATE TABLE schritte (
-    kennzeichen varchar(17) REFERENCES fahrzeuge(kennzeichen), 
+    kennzeichen varchar(17) REFERENCES fahrzeuge(kennzeichen) ON DELETE CASCADE, 
     tuerort door_t,
-    fk_schritt_stat_tueren_fahrzeug bigint REFERENCES statistiken_tueren_fahrzeuge(id_stat_tueren_fahrzeug),
+    fk_schritt_stat_tueren_fahrzeug bigint REFERENCES statistiken_tueren_fahrzeuge(id_stat_tueren_fahrzeug) ON DELETE CASCADE,
     CONSTRAINT schritte_pk PRIMARY KEY (kennzeichen, tuerort, fk_schritt_stat_tueren_fahrzeug)
 );
+
+CREATE INDEX idx_schritte_fk ON schritte(fk_schritt_stat_tueren_fahrzeug);
+
 -- ============================================
 -- FAHRZEUGE (die getesteten Fahrzeuge)
 -- ============================================
