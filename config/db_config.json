@@ -23,7 +23,14 @@
   "EZ_JOINT_TABLE_DOOR_LOCATION_DRIVER_REAR": "driver_rear",
   "EZ_JOINT_TABLE_DOOR_LOCATION_PASSENGER_FRONT": "passenger_front",
   "EZ_JOINT_TABLE_DOOR_LOCATION_PASSENGER_REAR": "passenger_rear",
-  "EZ_JOINT_TABLE_DOOR_LOCATION_REAR_HATCH": "hatch_rear",
+  "EZ_JOINT_TABLE_DOOR_LOCATION_REAR_HATCH": "rear_hatch",
+  "EZ_DOOR_LOCATIONS": [
+    {"label": "Driver Front", "value": "driver_front"},
+    {"label": "Driver Rear", "value": "driver_rear"},
+    {"label": "Passenger Front", "value": "passenger_front"},
+    {"label": "Passenger Rear", "value": "passenger_rear"},
+    {"label": "Rear Hatch", "value": "rear_hatch"}
+  ],
   "EZ_PG_DB": "ezsaw3",
   "EZ_PG_USER": "postgres",
   "EZ_PG_PASS": "postgres",

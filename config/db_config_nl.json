@@ -12,23 +12,25 @@
   "EZ_STAT_TWO_VAR_FIELD": "twee_variabelen",
   "EZ_STAT_INDEPENDENT_VAR_FIELD": "resultaat_x",
   "EZ_STAT_INDEPENDENT_VAR_UNIT_FIELD": "eenheid_resultaat_x",
-  "EZ_STAT_DEPENDENT_VAR_LOWER_LIM_FIELD": 
-"onderste_grenslimiet_resultaat_y",
+  "EZ_STAT_DEPENDENT_VAR_LOWER_LIM_FIELD": "onderste_grenslimiet_resultaat_y",
   "EZ_STAT_DEPENDENT_VAR_FIELD": "resultaat_y",
-  "EZ_STAT_DEPENDENT_VAR_UPPER_LIM_FIELD": 
-"bovenste_grenslimiet_resultaat_y",
+  "EZ_STAT_DEPENDENT_VAR_UPPER_LIM_FIELD": "bovenste_grenslimiet_resultaat_y",
   "EZ_STAT_DEPENDENT_VAR_UNIT_FIELD": "eenheid_resultaat_y",
   "EZ_JOINT_TABLE_NAME": "stappen",
   "EZ_JOINT_TABLE_STAT_FK": "fk_stap_stat_deur_voertuig",
   "EZ_JOINT_TABLE_DOOR_LOCATION_FIELD": "deurlocatie",
   "EZ_JOINT_TABLE_DOOR_LOCATION_DRIVER_FRONT": "voorste_bestuurder",
-  "EZ_JOINT_TABLE_DOOR_LOCATION_DRIVER_REAR": 
-"achterste_bestuurder",
-  
-"EZ_JOINT_TABLE_DOOR_LOCATION_PASSENGER_FRONT": "voorste_passagier",
-  "EZ_JOINT_TABLE_DOOR_LOCATION_PASSENGER_REAR": 
-"achterste_passagier",
+  "EZ_JOINT_TABLE_DOOR_LOCATION_DRIVER_REAR": "achterste_bestuurder",
+  "EZ_JOINT_TABLE_DOOR_LOCATION_PASSENGER_FRONT": "voorste_passagier",
+  "EZ_JOINT_TABLE_DOOR_LOCATION_PASSENGER_REAR": "achterste_passagier",
   "EZ_JOINT_TABLE_DOOR_LOCATION_REAR_HATCH": "achterste_deksel",
+  "EZ_DOOR_LOCATIONS": [
+    {"label": "Voorste Bestuurder", "value": "voorste_bestuurder"},
+    {"label": "Achterste Bestuurder", "value": "achterste_bestuurder"},
+    {"label": "Voorste Passagier", "value": "voorste_passagier"},
+    {"label": "Achterste Passagier", "value": "achterste_passagier"},
+    {"label": "Achterste Deksel", "value": "achterste_deksel"}
+  ],
   "EZ_PG_DB": "ezsaw3_nl",
   "EZ_PG_USER": "postgres",
   "EZ_PG_PASS": "postgres",

@@ -1,39 +1,65 @@
+"""
+Database query layer for EZSAW.
+
+Provides functions to query PostgreSQL for door check outlier results,
+vehicle lookups, and stat family data. All queries use parameterized
+inputs and quoted identifiers for safety.
+"""
+
 import psycopg
-from enum import Enum
 import json
 import numpy as np
 from pathlib import Path
 
+# ---------------------------------------------------------------------------
+# Config & connection
+# ---------------------------------------------------------------------------
+
 _CONFIG_DIR = Path(__file__).resolve().parent.parent.parent / 'config'
 DB_CONFIG_FILE_PATH = _CONFIG_DIR / 'db_config.json'
 
-def load_db_config():
-    with open(DB_CONFIG_FILE_PATH) as f:
-        return json.load(f)
 
+def load_db_config():
+    """Load the default db_config.json from the config directory."""
+    try:
+        with open(DB_CONFIG_FILE_PATH) as f:
+            return json.load(f)
+    except (json.JSONDecodeError, OSError):
+        return {}
+
+
+# Default config loaded at import time; individual functions accept overrides.
 PGDB_CONFIG = load_db_config()
 
-def ezsaw_default_connect():
+
+def ezsaw_default_connect(config=None):
+    """Open a new psycopg connection using the given (or default) config."""
+    if config is None:
+        config = PGDB_CONFIG
     return psycopg.connect(
-        dbname=PGDB_CONFIG['EZ_PG_DB'],
-        user=PGDB_CONFIG['EZ_PG_USER'],
-        password=PGDB_CONFIG['EZ_PG_PASS'],
-        host=PGDB_CONFIG['EZ_PG_HOST']
+        dbname=config['EZ_PG_DB'],
+        user=config['EZ_PG_USER'],
+        password=config['EZ_PG_PASS'],
+        host=config['EZ_PG_HOST']
     )
 
-class door_location(Enum):
-    DRIVER_FRONT = 'driver_front'
-    DRIVER_REAR = 'driver_rear'
-    PASSENGER_FRONT = 'passenger_front'
-    PASSENGER_REAR = 'passenger_rear'
-    REAR_HATCH = 'trunk/hatch'
-    HOOD = 'hood'
+
+def _quote_identifier(name):
+    """Wrap an SQL identifier in double-quotes for safe use in queries."""
+    return f'"{name}"'
+
+
+# ---------------------------------------------------------------------------
+# Data model
+# ---------------------------------------------------------------------------
 
 class test_case:
+    """Represents a single door check measurement with tolerance bounds."""
+
     def __init__(self, test_name, x, x_unit,
-                 y_low, y, y_high, y_unit, vin, dl):
+                 y_low, y, y_high, y_unit, vin, door_location):
         self.vehicle = vin
-        self.location = dl
+        self.location = door_location
         self.name = test_name
         self.result_x = x
         self.result_x_unit = x_unit
@@ -42,39 +68,50 @@ class test_case:
         self.result_y_upper = y_high
         self.result_y_unit = y_unit
 
-        if self.result_y < self.result_y_lower or self.result_y > self.result_y_upper:
-            self.out_of_tolerance = True
-        else:
-            self.out_of_tolerance = False
-
-    def describe(self):
-        print(
-            f'Test Case: {self.name}\n'
-            f'result_x: {self.result_x}\n'
-            f'result_x_unit: {self.result_x_unit}\n'
-            f'result_y_lower: {self.result_y_lower}\n'
-            f'result_y: {self.result_y}\n'
-            f'result_y_upper: {self.result_y_upper}\n'
-            f'result_y_unit: {self.result_y_unit}\n'
-            f'vehicle: {self.vehicle}\n'
-            f'door location: {self.location}\n'
+        self.out_of_tolerance = (
+            self.result_y < self.result_y_lower
+            or self.result_y > self.result_y_upper
         )
 
 
+# ---------------------------------------------------------------------------
+# SQL query builders
+# ---------------------------------------------------------------------------
+
+def _select_columns(joint, stat):
+    """Return the shared SELECT column list for outlier queries."""
+    return f"""
+        {joint}.door        AS door_location,
+        {stat}.name         AS test_name,
+        {stat}.x            AS result_x,
+        {stat}.x_unit       AS result_x_unit,
+        {stat}.y_lower      AS result_y_lower_lim,
+        {stat}.y            AS result_y,
+        {stat}.y_upper      AS result_y_upper_lim,
+        {stat}.y_unit       AS result_y_unit,
+        {joint}.vin         AS vin
+    """
+
+
 def build_outlier_query(config):
-    joint   = config['EZ_JOINT_TABLE_NAME']
-    stat    = config['EZ_STAT_TABLE_NAME']
-    fk      = config['EZ_JOINT_TABLE_STAT_FK']
-    stat_pk = config['EZ_STAT_TABLE_PK']
-    vin_pk  = config['EZ_VEHICLES_PK']
-    door    = config['EZ_JOINT_TABLE_DOOR_LOCATION_FIELD']
-    name    = config['EZ_STAT_NAME_FIELD']
-    x       = config['EZ_STAT_INDEPENDENT_VAR_FIELD']
-    x_unit  = config['EZ_STAT_INDEPENDENT_VAR_UNIT_FIELD']
-    y_low   = config['EZ_STAT_DEPENDENT_VAR_LOWER_LIM_FIELD']
-    y       = config['EZ_STAT_DEPENDENT_VAR_FIELD']
-    y_high  = config['EZ_STAT_DEPENDENT_VAR_UPPER_LIM_FIELD']
-    y_unit  = config['EZ_STAT_DEPENDENT_VAR_UNIT_FIELD']
+    """Build a query that finds all outlier rows for a single VIN.
+
+    Returns rows where the dependent variable (y) is outside tolerance bounds.
+    """
+    # Quote all column/table names from config
+    joint = _quote_identifier(config['EZ_JOINT_TABLE_NAME'])
+    stat = _quote_identifier(config['EZ_STAT_TABLE_NAME'])
+    fk = _quote_identifier(config['EZ_JOINT_TABLE_STAT_FK'])
+    pk = _quote_identifier(config['EZ_STAT_TABLE_PK'])
+    vin = _quote_identifier(config['EZ_VEHICLES_PK'])
+    door = _quote_identifier(config['EZ_JOINT_TABLE_DOOR_LOCATION_FIELD'])
+    name = _quote_identifier(config['EZ_STAT_NAME_FIELD'])
+    x = _quote_identifier(config['EZ_STAT_INDEPENDENT_VAR_FIELD'])
+    x_unit = _quote_identifier(config['EZ_STAT_INDEPENDENT_VAR_UNIT_FIELD'])
+    y_lower = _quote_identifier(config['EZ_STAT_DEPENDENT_VAR_LOWER_LIM_FIELD'])
+    y = _quote_identifier(config['EZ_STAT_DEPENDENT_VAR_FIELD'])
+    y_upper = _quote_identifier(config['EZ_STAT_DEPENDENT_VAR_UPPER_LIM_FIELD'])
+    y_unit = _quote_identifier(config['EZ_STAT_DEPENDENT_VAR_UNIT_FIELD'])
 
     return f"""
     SELECT
@@ -82,23 +119,24 @@ def build_outlier_query(config):
         {stat}.{name}    AS test_name,
         {stat}.{x}       AS result_x,
         {stat}.{x_unit}  AS result_x_unit,
-        {stat}.{y_low}   AS result_y_lower_lim,
+        {stat}.{y_lower} AS result_y_lower_lim,
         {stat}.{y}       AS result_y,
-        {stat}.{y_high}  AS result_y_upper_lim,
+        {stat}.{y_upper} AS result_y_upper_lim,
         {stat}.{y_unit}  AS result_y_unit,
-        {joint}.{vin_pk} AS vin
+        {joint}.{vin}    AS vin
     FROM {joint}
-    JOIN {stat} ON {joint}.{fk} = {stat}.{stat_pk}
-    WHERE ({stat}.{y} < {stat}.{y_low} OR {stat}.{y} > {stat}.{y_high})
-    AND {joint}.{vin_pk} = %s
+    JOIN {stat} ON {joint}.{fk} = {stat}.{pk}
+    WHERE ({stat}.{y} < {stat}.{y_lower} OR {stat}.{y} > {stat}.{y_upper})
+    AND {joint}.{vin} = %s
     """
 
 
 def vin_query(vin, config=None):
+    """Query outlier results for a specific VIN."""
     if config is None:
         config = PGDB_CONFIG
     query = build_outlier_query(config)
-    conn = ezsaw_default_connect()
+    conn = ezsaw_default_connect(config)
     try:
         with conn.cursor() as cur:
             cur.execute(query, (vin,))
@@ -108,20 +146,29 @@ def vin_query(vin, config=None):
         conn.close()
 
 
-def build_stat_family_query(config):
-    joint   = config['EZ_JOINT_TABLE_NAME']
-    stat    = config['EZ_STAT_TABLE_NAME']
-    fk      = config['EZ_JOINT_TABLE_STAT_FK']
-    stat_pk = config['EZ_STAT_TABLE_PK']
-    vin_pk  = config['EZ_VEHICLES_PK']
-    door    = config['EZ_JOINT_TABLE_DOOR_LOCATION_FIELD']
-    name    = config['EZ_STAT_NAME_FIELD']
-    x       = config['EZ_STAT_INDEPENDENT_VAR_FIELD']
-    x_unit  = config['EZ_STAT_INDEPENDENT_VAR_UNIT_FIELD']
-    y_low   = config['EZ_STAT_DEPENDENT_VAR_LOWER_LIM_FIELD']
-    y       = config['EZ_STAT_DEPENDENT_VAR_FIELD']
-    y_high  = config['EZ_STAT_DEPENDENT_VAR_UPPER_LIM_FIELD']
-    y_unit  = config['EZ_STAT_DEPENDENT_VAR_UNIT_FIELD']
+def build_outlier_query_by_vehicle(config):
+    """Build a query that finds outlier rows for a make/model/year combination.
+
+    Joins the vehicles table to filter by make, model, and manufacture year.
+    """
+    # Reuse the shared column aliases, then add vehicle-specific joins
+    joint = _quote_identifier(config['EZ_JOINT_TABLE_NAME'])
+    stat = _quote_identifier(config['EZ_STAT_TABLE_NAME'])
+    fk = _quote_identifier(config['EZ_JOINT_TABLE_STAT_FK'])
+    pk = _quote_identifier(config['EZ_STAT_TABLE_PK'])
+    vin = _quote_identifier(config['EZ_VEHICLES_PK'])
+    door = _quote_identifier(config['EZ_JOINT_TABLE_DOOR_LOCATION_FIELD'])
+    name = _quote_identifier(config['EZ_STAT_NAME_FIELD'])
+    x = _quote_identifier(config['EZ_STAT_INDEPENDENT_VAR_FIELD'])
+    x_unit = _quote_identifier(config['EZ_STAT_INDEPENDENT_VAR_UNIT_FIELD'])
+    y_lower = _quote_identifier(config['EZ_STAT_DEPENDENT_VAR_LOWER_LIM_FIELD'])
+    y = _quote_identifier(config['EZ_STAT_DEPENDENT_VAR_FIELD'])
+    y_upper = _quote_identifier(config['EZ_STAT_DEPENDENT_VAR_UPPER_LIM_FIELD'])
+    y_unit = _quote_identifier(config['EZ_STAT_DEPENDENT_VAR_UNIT_FIELD'])
+    vehicles = _quote_identifier(config['EZ_VEHICLES_TABLE_NAME'])
+    make = _quote_identifier(config['EZ_VEHICLES_MAKE_FIELD'])
+    model = _quote_identifier(config['EZ_VEHICLES_MODEL_FIELD'])
+    date = _quote_identifier(config['EZ_VEHICLES_MAN_DATE_FIELD'])
 
     return f"""
     SELECT
@@ -129,23 +176,77 @@ def build_stat_family_query(config):
         {stat}.{name}    AS test_name,
         {stat}.{x}       AS result_x,
         {stat}.{x_unit}  AS result_x_unit,
-        {stat}.{y_low}   AS result_y_lower_lim,
+        {stat}.{y_lower} AS result_y_lower_lim,
         {stat}.{y}       AS result_y,
-        {stat}.{y_high}  AS result_y_upper_lim,
+        {stat}.{y_upper} AS result_y_upper_lim,
         {stat}.{y_unit}  AS result_y_unit,
-        {joint}.{vin_pk} AS vin
+        {joint}.{vin}    AS vin
     FROM {joint}
-    JOIN {stat} ON {joint}.{fk} = {stat}.{stat_pk}
+    JOIN {stat} ON {joint}.{fk} = {stat}.{pk}
+    JOIN {vehicles} ON {joint}.{vin} = {vehicles}.{vin}
+    WHERE ({stat}.{y} < {stat}.{y_lower} OR {stat}.{y} > {stat}.{y_upper})
+    AND {vehicles}.{make} = %s
+    AND {vehicles}.{model} = %s
+    AND EXTRACT(YEAR FROM {vehicles}.{date})::int = %s
+    """
+
+
+def vehicle_query(make, model, year, config=None):
+    """Query outlier results for a specific make/model/year."""
+    if config is None:
+        config = PGDB_CONFIG
+    query = build_outlier_query_by_vehicle(config)
+    conn = ezsaw_default_connect(config)
+    try:
+        with conn.cursor() as cur:
+            cur.execute(query, (make, model, year))
+            cols = [desc[0] for desc in cur.description]
+            return [dict(zip(cols, row)) for row in cur.fetchall()]
+    finally:
+        conn.close()
+
+
+def build_stat_family_query(config):
+    """Build a query that fetches all measurements for a specific test name
+    and door location (the "family" of related stats for a scatter plot)."""
+    joint = _quote_identifier(config['EZ_JOINT_TABLE_NAME'])
+    stat = _quote_identifier(config['EZ_STAT_TABLE_NAME'])
+    fk = _quote_identifier(config['EZ_JOINT_TABLE_STAT_FK'])
+    pk = _quote_identifier(config['EZ_STAT_TABLE_PK'])
+    vin = _quote_identifier(config['EZ_VEHICLES_PK'])
+    door = _quote_identifier(config['EZ_JOINT_TABLE_DOOR_LOCATION_FIELD'])
+    name = _quote_identifier(config['EZ_STAT_NAME_FIELD'])
+    x = _quote_identifier(config['EZ_STAT_INDEPENDENT_VAR_FIELD'])
+    x_unit = _quote_identifier(config['EZ_STAT_INDEPENDENT_VAR_UNIT_FIELD'])
+    y_lower = _quote_identifier(config['EZ_STAT_DEPENDENT_VAR_LOWER_LIM_FIELD'])
+    y = _quote_identifier(config['EZ_STAT_DEPENDENT_VAR_FIELD'])
+    y_upper = _quote_identifier(config['EZ_STAT_DEPENDENT_VAR_UPPER_LIM_FIELD'])
+    y_unit = _quote_identifier(config['EZ_STAT_DEPENDENT_VAR_UNIT_FIELD'])
+
+    return f"""
+    SELECT
+        {joint}.{door}   AS door_location,
+        {stat}.{name}    AS test_name,
+        {stat}.{x}       AS result_x,
+        {stat}.{x_unit}  AS result_x_unit,
+        {stat}.{y_lower} AS result_y_lower_lim,
+        {stat}.{y}       AS result_y,
+        {stat}.{y_upper} AS result_y_upper_lim,
+        {stat}.{y_unit}  AS result_y_unit,
+        {joint}.{vin}    AS vin
+    FROM {joint}
+    JOIN {stat} ON {joint}.{fk} = {stat}.{pk}
     WHERE {stat}.{name} = %s
     AND {joint}.{door} = %s
     """
 
 
 def fetch_stat_family(test_name, door_location, config=None):
+    """Fetch the full measurement family for a given test name and door."""
     if config is None:
         config = PGDB_CONFIG
     query = build_stat_family_query(config)
-    conn = ezsaw_default_connect()
+    conn = ezsaw_default_connect(config)
     try:
         with conn.cursor() as cur:
             cur.execute(query, (test_name, door_location))
@@ -155,7 +256,71 @@ def fetch_stat_family(test_name, door_location, config=None):
         conn.close()
 
 
+# ---------------------------------------------------------------------------
+# Vehicle lookups (for make/model/year cascading dropdowns)
+# ---------------------------------------------------------------------------
+
+def fetch_makes(config=None):
+    """Return a sorted list of distinct vehicle makes."""
+    if config is None:
+        config = PGDB_CONFIG
+    table = _quote_identifier(config['EZ_VEHICLES_TABLE_NAME'])
+    make_col = _quote_identifier(config['EZ_VEHICLES_MAKE_FIELD'])
+    conn = ezsaw_default_connect(config)
+    try:
+        with conn.cursor() as cur:
+            cur.execute(f"SELECT DISTINCT {make_col} FROM {table} ORDER BY {make_col}")
+            return [row[0] for row in cur.fetchall()]
+    finally:
+        conn.close()
+
+
+def fetch_models(make, config=None):
+    """Return a sorted list of distinct models for a given make."""
+    if config is None:
+        config = PGDB_CONFIG
+    table = _quote_identifier(config['EZ_VEHICLES_TABLE_NAME'])
+    make_col = _quote_identifier(config['EZ_VEHICLES_MAKE_FIELD'])
+    model_col = _quote_identifier(config['EZ_VEHICLES_MODEL_FIELD'])
+    conn = ezsaw_default_connect(config)
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                f"SELECT DISTINCT {model_col} FROM {table} WHERE {make_col} = %s ORDER BY {model_col}",
+                (make,),
+            )
+            return [row[0] for row in cur.fetchall()]
+    finally:
+        conn.close()
+
+
+def fetch_years(make, model, config=None):
+    """Return a sorted list of distinct manufacture years for a make/model."""
+    if config is None:
+        config = PGDB_CONFIG
+    table = _quote_identifier(config['EZ_VEHICLES_TABLE_NAME'])
+    make_col = _quote_identifier(config['EZ_VEHICLES_MAKE_FIELD'])
+    model_col = _quote_identifier(config['EZ_VEHICLES_MODEL_FIELD'])
+    date_col = _quote_identifier(config['EZ_VEHICLES_MAN_DATE_FIELD'])
+    conn = ezsaw_default_connect(config)
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                f"SELECT DISTINCT EXTRACT(YEAR FROM {date_col})::int FROM {table} "
+                f"WHERE {make_col} = %s AND {model_col} = %s ORDER BY 1",
+                (make, model),
+            )
+            return [row[0] for row in cur.fetchall()]
+    finally:
+        conn.close()
+
+
+# ---------------------------------------------------------------------------
+# Result processing
+# ---------------------------------------------------------------------------
+
 def init_test_case(row):
+    """Convert a raw query result dict into a test_case instance."""
     return test_case(
         row['test_name'],
         row['result_x'],
@@ -170,49 +335,39 @@ def init_test_case(row):
 
 
 def init_test_case_list(raw_entries):
+    """Convert a list of raw query result dicts into test_case instances."""
     return [init_test_case(entry) for entry in raw_entries]
 
 
 def matricize_test_cases(stats):
+    """Convert a list of test_case objects into a (2, n) numpy matrix
+    of [result_x, result_y] values for plotting.
+
+    If the first entry has a non-empty name, only consecutive entries
+    matching that name are included. If the name is empty, all entries
+    are included.
+    """
     if not stats:
         return np.zeros((2, 0))
 
-    mat = np.zeros((2, len(stats)))
-    test_case_name = stats[0].name
-    i = 0
+    matrix = np.zeros((2, len(stats)))
+    target_name = stats[0].name
+    col_idx = 0
 
-    if test_case_name == '':
+    if target_name == '':
+        # Empty name: include all entries regardless of name
         for stat in stats:
-            mat[0, i] = stat.result_x
-            mat[1, i] = stat.result_y
-            i += 1
+            matrix[0, col_idx] = stat.result_x
+            matrix[1, col_idx] = stat.result_y
+            col_idx += 1
     else:
+        # Named: include only the first contiguous block matching target_name
         for stat in stats:
-            if stat.name != test_case_name:
+            if stat.name != target_name:
                 break
-            mat[0, i] = stat.result_x
-            mat[1, i] = stat.result_y
-            i += 1
+            matrix[0, col_idx] = stat.result_x
+            matrix[1, col_idx] = stat.result_y
+            col_idx += 1
 
-    return mat[:, :i]
-
-
-def main():
-    vin_entry = input('Enter a VIN: ').strip()
-    if not vin_entry:
-        print('No VIN entered.')
-        return
-
-    selection = vin_query(vin_entry)
-    if not selection:
-        print(f'No outlier results found for VIN: {vin_entry}')
-        return
-
-    test_cases = init_test_case_list(selection)
-    print(f'\nFound {len(test_cases)} outlier(s) for VIN {vin_entry}:\n')
-    for tc in test_cases:
-        tc.describe()
-
-
-if __name__ == '__main__':
-    main()
+    # Return only the filled portion of the matrix
+    return matrix[:, :col_idx]

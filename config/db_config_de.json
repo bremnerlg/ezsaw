@@ -12,13 +12,10 @@
   "EZ_STAT_TWO_VAR_FIELD": "zwei_variablen",
   "EZ_STAT_INDEPENDENT_VAR_FIELD": "ergebnis_x",
   "EZ_STAT_INDEPENDENT_VAR_UNIT_FIELD": "einheit_ergebnis_x",
-  "EZ_STAT_DEPENDENT_VAR_LOWER_LIM_FIELD": 
-"untere_grenze_ergebnis_y",
+  "EZ_STAT_DEPENDENT_VAR_LOWER_LIM_FIELD": "untere_grenze_ergebnis_y",
   "EZ_STAT_DEPENDENT_VAR_FIELD": "ergebnis_y",
-  "EZ_STAT_DEPENDENT_VAR_UPPER_LIM_FIELD": 
-"obere_grenze_ergebnis_y",
-  "EZ_STAT_DEPENDENT_VAR_UNIT_FIELD": 
-"einheit_ergebnis_y",
+  "EZ_STAT_DEPENDENT_VAR_UPPER_LIM_FIELD": "obere_grenze_ergebnis_y",
+  "EZ_STAT_DEPENDENT_VAR_UNIT_FIELD": "einheit_ergebnis_y",
   "EZ_JOINT_TABLE_NAME": "schritte",
   "EZ_JOINT_TABLE_STAT_FK": "fk_schritt_stat_tueren_fahrzeug",
   "EZ_JOINT_TABLE_DOOR_LOCATION_FIELD": "tuerort",
@@ -27,6 +24,13 @@
   "EZ_JOINT_TABLE_DOOR_LOCATION_PASSENGER_FRONT": "vorne_beifahrer",
   "EZ_JOINT_TABLE_DOOR_LOCATION_PASSENGER_REAR": "hinten_beifahrer",
   "EZ_JOINT_TABLE_DOOR_LOCATION_REAR_HATCH": "heckspoiler",
+  "EZ_DOOR_LOCATIONS": [
+    {"label": "Vorne Fahrer", "value": "vorne_fuehrer"},
+    {"label": "Hinten Fahrer", "value": "hinten_fuehrer"},
+    {"label": "Vorne Beifahrer", "value": "vorne_beifahrer"},
+    {"label": "Hinten Beifahrer", "value": "hinten_beifahrer"},
+    {"label": "Heckspoiler", "value": "heckspoiler"}
+  ],
   "EZ_PG_DB": "ezsaw3_de",
   "EZ_PG_USER": "postgres",
   "EZ_PG_PASS": "postgres",

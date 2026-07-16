@@ -24,31 +24,23 @@ def display_failed_graphs(edit_widget):
             pass
 
 
-def display_related_stats(edit_widget, tests):
-    """
-    Given a specific stat, display all other stats that are
-    within that stat case.
-    """
-    vin_selected = edit_widget.text()
-    outliers = vin_query(vin_selected)
-    for outlier in outliers:
-        stat = init_test_case(outlier)
-        print(stat.name)
+def display_test_results(edit_widget, tests, vin=None):
+    """Print full query results and tolerance status for a VIN or test list."""
+    if vin is not None:
+        outliers = vin_query(vin)
+        print("[DBG] Query Return: ")
+        print(outliers)
+        tests = outliers
     print("\n\n---------TEST_RESULTS----------")
-    i_cnt = 0
-    for row in tests:
+    for i_cnt, row in enumerate(tests, 1):
         test_results = init_test_case(row)
-        i_cnt = i_cnt + 1
-
-        if test_results.out_of_tolerance:
-            print(str(row['test_name']) + ': FAILED.')
-        else:
-            print(str(row['test_name']) + ': PASSED')
-        print("Set: " + str(i_cnt))
-        print("VIN: " + str(test_results.vehicle) + "\n"
-              "y val: " + str(test_results.result_y) + "\n"
-              "upper_lim: " + str(test_results.result_y_upper) + "\n"
-              "lower_lim: " + str(test_results.result_y_lower) + "\n")
+        status = 'FAILED' if test_results.out_of_tolerance else 'PASSED'
+        print(f"{row['test_name']}: {status}")
+        print(f"Set: {i_cnt}")
+        print(f"VIN: {test_results.vehicle}\n"
+              f"y val: {test_results.result_y}\n"
+              f"upper_lim: {test_results.result_y_upper}\n"
+              f"lower_lim: {test_results.result_y_lower}\n")
 
 
 def plot_stats(edit_widget):
@@ -57,29 +49,8 @@ def plot_stats(edit_widget):
     outliers = vin_query(vin_selected)
     pg.plot(title="testgraph1")
     for outlier in outliers:
-        init_test_case(outlier)
-
-
-def display_entry_table(edit_widget, vin):
-    """Print full query results and tolerance status for a VIN."""
-    outliers = vin_query(vin)
-    print("[DBG] Query Return: ")
-    print(outliers)
-    print("\n\n---------TEST_RESULTS----------")
-    i_cnt = 0
-    for row in outliers:
-        test_results = init_test_case(row)
-        i_cnt = i_cnt + 1
-
-        if test_results.out_of_tolerance:
-            print(str(row['test_name']) + ': FAILED.')
-        else:
-            print(str(row['test_name']) + ': PASSED')
-        print("Set: " + str(i_cnt))
-        print("VIN: " + str(test_results.vehicle) + "\n"
-              "y val: " + str(test_results.result_y) + "\n"
-              "upper_lim: " + str(test_results.result_y_upper) + "\n"
-              "lower_lim: " + str(test_results.result_y_lower) + "\n")
+        tc = init_test_case(outlier)
+        print(f"Plotting: {tc.name} ({tc.result_x}, {tc.result_y})")
 
 
 def dbg_print_vin_fetch(edit_widget):

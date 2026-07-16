@@ -12,11 +12,9 @@
   "EZ_STAT_TWO_VAR_FIELD": "deux_variablés",
   "EZ_STAT_INDEPENDENT_VAR_FIELD": "résultat_x",
   "EZ_STAT_INDEPENDENT_VAR_UNIT_FIELD": "unité_résultat_x",
-  "EZ_STAT_DEPENDENT_VAR_LOWER_LIM_FIELD": 
-"limite_infèreure_résultat_y",
+  "EZ_STAT_DEPENDENT_VAR_LOWER_LIM_FIELD": "limite_infèreure_résultat_y",
   "EZ_STAT_DEPENDENT_VAR_FIELD": "résultat_y",
-  "EZ_STAT_DEPENDENT_VAR_UPPER_LIM_FIELD": 
-"limite_suptère_résultat_y",
+  "EZ_STAT_DEPENDENT_VAR_UPPER_LIM_FIELD": "limite_suptère_résultat_y",
   "EZ_STAT_DEPENDENT_VAR_UNIT_FIELD": "unité_résultat_y",
   "EZ_JOINT_TABLE_NAME": "étapes",
   "EZ_JOINT_TABLE_STAT_FK": "fk_étape_stat_porte_auto",
@@ -26,6 +24,13 @@
   "EZ_JOINT_TABLE_DOOR_LOCATION_PASSENGER_FRONT": "avant_passager",
   "EZ_JOINT_TABLE_DOOR_LOCATION_PASSENGER_REAR": "arrière_passager",
   "EZ_JOINT_TABLE_DOOR_LOCATION_REAR_HATCH": "capot_arrière",
+  "EZ_DOOR_LOCATIONS": [
+    {"label": "Avant Conducteur", "value": "avant_driver"},
+    {"label": "Arrière Conducteur", "value": "arrière_driver"},
+    {"label": "Avant Passager", "value": "avant_passager"},
+    {"label": "Arrière Passager", "value": "arrière_passager"},
+    {"label": "Capot Arrière", "value": "capot_arrière"}
+  ],
   "EZ_PG_DB": "ezsaw3_fr",
   "EZ_PG_USER": "postgres",
   "EZ_PG_PASS": "postgres",
