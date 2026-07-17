@@ -24,12 +24,14 @@
   "EZ_JOINT_TABLE_DOOR_LOCATION_PASSENGER_FRONT": "delantero_viajero",
   "EZ_JOINT_TABLE_DOOR_LOCATION_PASSENGER_REAR": "trasero_viajero",
   "EZ_JOINT_TABLE_DOOR_LOCATION_REAR_HATCH": "maletero_trasero",
+  "EZ_JOINT_TABLE_DOOR_LOCATION_HOOD": "capó",
   "EZ_DOOR_LOCATIONS": [
     {"label": "Delantero Conductor", "value": "delantero_conductor"},
     {"label": "Trasero Conductor", "value": "trasero_conductor"},
     {"label": "Delantero Viajero", "value": "delantero_viajero"},
     {"label": "Trasero Viajero", "value": "trasero_viajero"},
-    {"label": "Maletero Trasero", "value": "maletero_trasero"}
+    {"label": "Maletero Trasero", "value": "maletero_trasero"},
+    {"label": "Capó", "value": "capó"}
   ],
   "EZ_PG_DB": "ezsaw_es",
   "EZ_PG_USER": "postgres",

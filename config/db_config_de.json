@@ -24,12 +24,14 @@
   "EZ_JOINT_TABLE_DOOR_LOCATION_PASSENGER_FRONT": "vorne_beifahrer",
   "EZ_JOINT_TABLE_DOOR_LOCATION_PASSENGER_REAR": "hinten_beifahrer",
   "EZ_JOINT_TABLE_DOOR_LOCATION_REAR_HATCH": "heckklappe",
+  "EZ_JOINT_TABLE_DOOR_LOCATION_HOOD": "haube",
   "EZ_DOOR_LOCATIONS": [
     {"label": "Vorne Fahrer", "value": "vorne_fuehrer"},
     {"label": "Hinten Fahrer", "value": "hinten_fuehrer"},
     {"label": "Vorne Beifahrer", "value": "vorne_beifahrer"},
     {"label": "Hinten Beifahrer", "value": "hinten_beifahrer"},
-    {"label": "Heckklappe", "value": "heckklappe"}
+    {"label": "Heckklappe", "value": "heckklappe"},
+    {"label": "Haube", "value": "haube"}
   ],
   "EZ_PG_DB": "ezsaw_de",
   "EZ_PG_USER": "postgres",
