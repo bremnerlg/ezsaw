@@ -268,7 +268,7 @@ class TestLocale:
         cfg = load_db_config_for_locale('en')
         assert cfg['EZ_PG_DB'] == 'ezsaw3'
         cfg_de = load_db_config_for_locale('de')
-        assert cfg_de['EZ_PG_DB'] == 'ezsaw3_de'
+        assert cfg_de['EZ_PG_DB'] == 'ezsaw_de'
 
     def test_supported_locales_returns_list(self):
         locales = get_supported_locales()
@@ -326,7 +326,7 @@ class TestDbConfig:
         configs = get_supported_db_configs()
         names = [n for n, _ in configs]
         assert 'ezsaw3' in names
-        assert 'ezsaw3_de' in names
+        assert 'ezsaw_de' in names
 
     def test_db_config_default_first(self):
         configs = get_supported_db_configs()
@@ -351,7 +351,7 @@ class TestDbConfig:
         try:
             set_current_db_config_file('db_config_de.json')
             cfg = load_db_config_for_locale('en')
-            assert cfg['EZ_PG_DB'] == 'ezsaw3_de'
+            assert cfg['EZ_PG_DB'] == 'ezsaw_de'
         finally:
             if original:
                 set_current_db_config_file(original)
@@ -369,7 +369,7 @@ class TestDbConfig:
             from src.core.locale import save_prefs
             save_prefs(prefs)
             cfg = load_db_config_for_locale('de')
-            assert cfg['EZ_PG_DB'] == 'ezsaw3_de'
+            assert cfg['EZ_PG_DB'] == 'ezsaw_de'
         finally:
             if original:
                 set_current_db_config_file(original)

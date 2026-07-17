@@ -17,6 +17,10 @@ os.environ['QT_QPA_PLATFORM'] = 'offscreen'
 
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QColor
+
+_GRAY = QColor(Qt.gray).name()
+_WHITE = QColor(Qt.white).name()
 
 app = QApplication.instance() or QApplication(sys.argv)
 
@@ -273,7 +277,7 @@ class TestDoorAvailability:
         form._update_door_availability(raw)
         for i in range(form.door_location_widget.count()):
             item = form.door_location_widget.item(i)
-            assert item.foreground().color().name() == '#ffffff'
+            assert item.foreground().color().name() == _WHITE
 
     def test_only_one_door_available(self, form, qtbot):
         raw = [_raw(door='driver_front')]
@@ -282,23 +286,23 @@ class TestDoorAvailability:
             item = form.door_location_widget.item(i)
             _, key = DOOR_LOCATIONS[i]
             if key == 'driver_front':
-                assert item.foreground().color().name() == '#ffffff'
+                assert item.foreground().color().name() == _WHITE
             else:
-                assert item.foreground().color().name() == '#808080'
+                assert item.foreground().color().name() == _GRAY
 
     def test_empty_raw_greys_out_all(self, form, qtbot):
         form._update_door_availability([])
         for i in range(form.door_location_widget.count()):
             item = form.door_location_widget.item(i)
-            assert item.foreground().color().name() == '#808080'
+            assert item.foreground().color().name() == _GRAY
 
     def test_doors_restore_after_new_query(self, form, qtbot):
         form._update_door_availability([_raw(door='driver_front')])
-        assert form.door_location_widget.item(3).foreground().color().name() == '#808080'
+        assert form.door_location_widget.item(3).foreground().color().name() == _GRAY
 
         form._update_door_availability([_raw(door='passenger_rear')])
-        assert form.door_location_widget.item(3).foreground().color().name() == '#ffffff'
-        assert form.door_location_widget.item(0).foreground().color().name() == '#808080'
+        assert form.door_location_widget.item(3).foreground().color().name() == _WHITE
+        assert form.door_location_widget.item(0).foreground().color().name() == _GRAY
 
 
 # ===========================================================================
@@ -685,7 +689,7 @@ class TestDoorAvailabilityStress:
         # At least some doors should be white (available)
         white = 0
         for i in range(form.door_location_widget.count()):
-            if form.door_location_widget.item(i).foreground().color().name() == '#ffffff':
+            if form.door_location_widget.item(i).foreground().color().name() == _WHITE:
                 white += 1
         assert white >= 1
 
@@ -697,6 +701,6 @@ class TestDoorAvailabilityStress:
             item = form.door_location_widget.item(i)
             _, key = DOOR_LOCATIONS[i]
             if key == 'passenger_front':
-                assert item.foreground().color().name() == '#ffffff'
+                assert item.foreground().color().name() == _WHITE
             else:
-                assert item.foreground().color().name() == '#808080'
+                assert item.foreground().color().name() == _GRAY

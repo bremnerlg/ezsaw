@@ -285,4 +285,4 @@ class TestDatabaseSelector:
     def test_db_combo_items_show_db_names(self, form, qtbot):
         names = [form.db_combo.itemText(i) for i in range(form.db_combo.count())]
         assert 'ezsaw3' in names
-        assert 'ezsaw3_de' in names
+        assert 'ezsaw_de' in names
