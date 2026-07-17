@@ -1,7 +1,9 @@
 # EZSAW Builder Brief
 
 > **Reusable context for AI models and new contributors.**
-> Last updated: 2026-07-16 | Version: 3.0.0 Beta
+> Last updated: 2026-07-17 | Version: 3.1.0 Alpha
+
+**IMPORTANT:** Any AI agent working on this project MUST update BRIEF.md as it goes to avoid stale context accumulating and ensure needed context is always present. Delete sections that are no longer relevant; add new ones as discoveries are made.
 
 ---
 
@@ -27,10 +29,10 @@ ezsaw/
 │   ├── stat_ordering.json   # Branch-based graph traversal order rules
 │   └── user_prefs.json      # Persists user's language + DB selection
 ├── src/
-│   ├── main.py              # PyQt5 GUI (intro_form class, ~600 lines)
+│   ├── main.py              # PyQt5 GUI (intro_form class, ~780 lines)
 │   └── core/
-│       ├── auto_stat_facilities.py  # DB queries, data model, stat ordering (~330 lines)
-│       ├── locale.py                # Locale/DB config loading (~130 lines)
+│       ├── auto_stat_facilities.py  # DB queries, data model, stat ordering (~426 lines)
+│       ├── locale.py                # Locale/DB config loading (~189 lines)
 │       └── __init__.py              # Public re-exports
 ├── tests/
 │   ├── conftest.py          # Autouse fixture resetting prefs per test
@@ -39,19 +41,35 @@ ezsaw/
 │   └── test_stress.py       # Stress tests (1000-case plotting, edge cases)
 ├── db/                      # SQL schema + helper scripts for PostgreSQL setup
 │   ├── ezsaw_tables*.sql    # Schema + bulk INSERT data (one per locale)
-│   ├── fix_sql.py           # SQL cleanup helper
-│   ├── gen_psql.py          # PostgreSQL generation helper
-│   ├── generate_steps.py    # Steps table data generator
-│   ├── insert_data.py       # Data insertion helper
-│   └── insert_steps.sql     # Steps INSERT statements
+│   ├── fix_sql.py           # DEPRECATED — has door bugs
+│   ├── gen_psql.py          # DEPRECATED — has door bugs
+│   ├── generate_steps.py    # DEPRECATED — has door bugs
+│   ├── insert_data.py       # DEPRECATED — has door + column bugs
+│   ├── insert_steps.sql     # Steps INSERT (used for ezsaw DB)
+│   ├── sql_fix.sql          # SQL fix script (applied to ezsaw3)
+│   └── backup/              # Pre-fix SQL file backups
+├── fix_db.py                # Comprehensive fixer (DB-side, applied to ezsaw3)
+├── export_fixed.py          # Active exporter from fixed DB to all SQL files
 ├── data/
 │   ├── logo/                # Company logo for the UI header
 │   └── pseudo_database/     # Test/pseudo database files
 ```
 
-**Tech stack:** Python 3.12, PyQt5, pyqtgraph, numpy, psycopg3, PostgreSQL 16+
+**Tech stack:** Python 3.12, PyQt5, pyqtgraph, numpy, psycopg2/psycopg3, PostgreSQL 16+
 
-**Test status:** 104 passing, 4 failing (pre-existing Qt offscreen colour rendering issue — not a code bug)
+---
+
+## Live Databases
+
+| DB | Language | Source SQL | Rows (veh/stats/steps) | Notes |
+|----|----------|-----------|----------------------|-------|
+| `ezsaw` | English | `ezsaw_tables.sql` + `insert_steps.sql` | 1030 / 38205 / 38205 | Interleaved stat ordering |
+| `ezsaw2` | German | `ezsaw_tables_de.sql` | 1030 / 38205 / 38205 | Ordered by stat_ordering.json |
+| `ezsaw3` | English (fixed) | `sql_fix.sql` + `fix_db.py` | 1030 / 38205 / 38205 | Canonical fixed DB |
+| `ezsaw_de` | German | `ezsaw_tables_de.sql` | 1030 / 38205 / 38205 | Standalone locale DB |
+| `ezsaw_fr` | French | `ezsaw_tables_fr.sql` | 1030 / 38205 / 38205 | Standalone locale DB |
+| `ezsaw_es` | Spanish | `ezsaw_tables_es.sql` | 1030 / 38205 / 38205 | Standalone locale DB |
+| `ezsaw_nl` | Dutch | `ezsaw_tables_nl.sql` | 1030 / 38205 / 38205 | Standalone locale DB |
 
 ---
 
@@ -59,105 +77,121 @@ ezsaw/
 
 The database stores door check measurement results across three logical layers:
 
-1. **Vehicles** — VIN, make, model, manufacture date
-2. **Stats** (auto_door_stats) — Individual measurement results with x/y values and tolerance bounds (lower limit, upper limit)
+1. **Vehicles** — VIN, make, model, body type, manufacture date
+2. **Stats** (auto_door_stats) — 38205 individual measurement results with x/y values and tolerance bounds (lower limit, upper limit). Every 9 consecutive IDs span all 9 test types.
 3. **Steps** (joint table) — Links stats to vehicles, includes door location
 
-An **outlier** is any measurement where the dependent variable (result_y) falls **outside** the tolerance bounds (result_y_lower_lim, result_y_upper_lim). These are the rows EZSAW surfaces to the user.
+**Door assignments per body type:**
+- sedan: driver_front, driver_rear, passenger_front, passenger_rear (4 doors)
+- coupe: driver_front, passenger_front (2 doors)
+- SUV: driver_front, driver_rear, passenger_front, passenger_rear, rear_hatch, hood (6 doors)
+- pickup: driver_front, passenger_front (2 doors)
+- hatchback: driver_front, driver_rear, passenger_front, passenger_rear, rear_hatch (5 doors)
 
-A **stat family** is the collection of all measurements sharing the same test name and door location across all vehicles — this is what gets plotted as the scatter background for each graph, with the current vehicle's point highlighted in red.
-
-The `test_case` class is the core data object:
-```python
-test_case(test_name, x, x_unit, y_low, y, y_high, y_unit, vin, door_location)
-# Attributes: name, result_x, result_x_unit, result_y_lower, result_y,
-#             result_y_upper, result_y_unit, vehicle, location, out_of_tolerance
-```
-
----
-
-## Key Design Decisions
-
-### What the solo developer handles directly:
-- **High-level data structure and analysis logic** — how outliers are identified, how stat families are structured, how matricization works for plotting
-- **Core query design** — SQL query builders and the relationship between vehicles, stats, and the joint table
-- **Business logic** — door availability filtering, deduplication, navigation state management
-- **Stat ordering rules** — the branch-based traversal order in `stat_ordering.json` is designed by mechanical engineers
-
-### What AI handles:
-- **Front-end components** — PyQt5 widget layout, styling, pyqtgraph rendering
-- **Configurability layer** — JSON-driven locale system, DB config abstraction, `_quote_identifier()` for generic SQL
-- **Test scaffolding** — widget tests, stress tests, unit tests
-- **Code quality** — static analysis fixes, error handling, readability rewrites
-- **Graph annotations** — on-plot branch labels, auto-centering on outlier points
-
-This division lets the developer focus on high-level design decisions while AI accelerates the visual and plumbing work.
+An **outlier** is any measurement where result_y falls outside tolerance bounds. A **stat family** is all measurements sharing the same test name and door location across all vehicles.
 
 ---
 
 ## The Configurability System
 
-The entire DB schema is abstracted through `config/db_config.json`. No column names or table names are hardcoded in Python — they're referenced through config keys like `EZ_STAT_NAME_FIELD`, `EZ_JOINT_TABLE_DOOR_LOCATION_FIELD`, etc. This means:
-
-- The same codebase works against different DB schemas by swapping the config file
-- Each locale can point to a different database (e.g., `ezsaw3_de` for German data)
-- The DB dropdown in the UI lets users switch databases at runtime (triggers app restart)
-
-The locale system (`config/locale_*.json`) provides 35 UI text keys plus a `EZ_TEST_NAMES` dictionary for translating test names from English DB values to localized display strings.
-
-The stat ordering system (`config/stat_ordering.json`) controls the traversal order of outlier graphs. It uses branch rules: if the set of outlier stat names found for a vehicle is a superset of a branch's match list, the stats are reordered to match that branch's order. Unknown names are appended alphabetically. Falls back to alphabetical order if no branch matches.
+The entire DB schema is abstracted through `config/db_config*.json`. No column names or table names are hardcoded in Python — they're referenced through config keys. This means the same codebase works against different DB schemas by swapping the config file, and each locale can point to a different database.
 
 ---
 
-## Data Confidentiality
+## V3.1.0A — Data Integrity Fixes (2026-07-17)
 
-> **Important:** The databases contain proprietary automotive measurement data from EZMetrology's customers. This data is confidential and company-specific. The tool is designed to work with customer-specific databases — each deployment has its own `db_config*.json` with connection credentials. The codebase itself does not contain real measurement data; all test data is synthetic/mock.
+12. **Zero outliers in all databases** — Every `auto_door_stats` row had `result_y_lower_lim < result_y < result_y_upper_lim` by design. The data generators (`gen_psql.py`, `sql_fix.sql`) always produced tolerance bounds that contained the result value. The app could never find anything to display.
+13. **Empty graph on first load** — Even after adding outliers, each VIN had only 1–6 outliers concentrated at a few doors. The default door selection ("Driver Front") often had nothing, so the door filter emptied `stats_selection` and the nav buttons were disabled.
+    - Fixed with a two-stage `db/introduce_outliers.sql`: (a) for each VIN/door block, make stat #3 an outlier (guarantees every door has ≥1 outlier), then (b) sprinkle ~2% extra random outliers for variety.
+    - Result: 8857 outliers per DB (23% of all stats), every VIN has 3–13 outliers across 2–6 doors, and "Driver Front" always has at least 1.
+
+The fundamental fix: the original data generators always produced `lower < y < upper`, guaranteeing zero outliers. The `introduce_outliers.sql` script ensures every VIN/door block has at least one outlier so the UI always has data to display regardless of door selection.
+
+### Bugs Found & Fixed
+
+1. **Stat ID ordering was alphabetical, not custom** — Within each 9-block, stat IDs followed alphabetical order (Closing Energy First, Closing Energy Full, Door Check..., Hinge..., Seal..., Static Closing, Striker). They now follow `stat_ordering.json` custom order.
+
+2. **SUVs had only 2 doors (rear_hatch, hood)** — Missing all 4 passenger doors (driver_front, driver_rear, passenger_front, passenger_rear). Root cause: `DOOR_MAP` in `gen_psql.py`, `generate_steps.py`, `insert_data.py`, and `fix_sql.py` all defined SUV as `['rear_hatch', 'hood']` instead of `['driver_front', 'driver_rear', 'passenger_front', 'passenger_rear', 'rear_hatch', 'hood']`.
+
+3. **Hatchback was missing rear_hatch** — Root cause: same scripts defined hatchback as `['driver_front', 'driver_rear', 'passenger_front', 'passenger_rear']` (missing `rear_hatch`).
+
+4. **French & Spanish SQL had quoted table names** — `INSERT INTO "véhicules"` / `INSERT INTO "vehículos"`. The `export_fixed.py` regex did not handle double-quoted identifiers; fixed with `"?` patterns and fallback search.
+
+5. **Decimal values were quoted as strings** — `psycopg2` returns `Decimal` objects which `isinstance(val, (int, float))` did not catch, causing them to be wrapped in quotes: `'245.9'` instead of `245.9`. Fixed by adding `decimal.Decimal` to the type check.
+
+6. **`ezsaw` DB was broken** — Created empty then loaded `insert_steps.sql` (which has no CREATE TABLE statements). Fixed by loading `ezsaw_tables.sql` first for schema+data, then `insert_steps.sql` for interleaved stats.
+
+### Critical Config Bugs Found (not in data, but in locale db_config files)
+
+7. **`db_config_es.json`** — `EZ_JOINT_TABLE_DOOR_LOCATION_REAR_HATCH` was `"maletero trasero"` (with space) but SQL enum and data use `"maletero_trasero"` (underscore). Door filter would return no results for Spanish rear hatch.
+
+8. **`db_config_fr.json`** — `EZ_JOINT_TABLE_DOOR_LOCATION_REAR_HATCH` was `"capot_arrière"` ("rear hood") but SQL enum and data use `"hayon"` ("hatch"). Door filter broken for French.
+
+9. **`db_config_de.json`** — `EZ_JOINT_TABLE_DOOR_LOCATION_REAR_HATCH` was `"heckspoiler"` ("rear spoiler") but SQL enum and data use `"heckklappe"` ("rear hatch"). Door filter broken for German.
+
+10. **`db_config_nl.json`** — `EZ_JOINT_TABLE_DOOR_LOCATION_REAR_HATCH` was `"achterste_deksel"` ("rear lid") but SQL enum and data use `"achterklep"` ("hatch"). Door filter broken for Dutch.
+
+11. **`EZ_PG_DB` in all locale configs** — Pointed to `ezsaw3_*` databases that don't exist. Fixed to `ezsaw_*`.
+
+### Deprecated Scripts (have bugs, replaced by `export_fixed.py`)
+
+| Script | Bugs |
+|--------|------|
+| `db/gen_psql.py` | SUV uses `'trunk/hatch'` (not in door_t enum); hatchback missing `rear_hatch` |
+| `db/generate_steps.py` | SUV missing passenger doors; hatchback missing `rear_hatch` |
+| `db/insert_data.py` | SUV missing passenger doors; hatchback missing `rear_hatch`; wrong French column names (`nom_stat_porte_vehicule`, `preleve`, `deux_variables`, `resultat_x` instead of actual column names) |
+| `db/fix_sql.py` | SUV missing passenger doors; hatchback missing `rear_hatch`; syntax error at line 223 (stray `'` before comma variable); all `manufacture_date` hardcoded to `'2021-01-01'` |
+
+The correct workflow is now: apply `sql_fix.sql` → run `fix_db.py` to fix ezsaw3 DB → run `export_fixed.py` to export to all SQL files.
+
+### How Fixes Were Applied
+
+| Step | Tool | What |
+|------|------|------|
+| 1 | `db/sql_fix.sql` | SQL script ran on `ezsaw3` DB: reordered stat IDs, added missing SUV passenger doors + hatchback rear_hatch |
+| 2 | `export_fixed.py` | Python script that reads fixed `ezsaw3` DB and writes fresh INSERT blocks into all 6 SQL files |
+| 3 | `db/introduce_outliers.sql` | Push ~10% of result_y values outside tolerance bounds so outliers exist |
+| 4 | `export_fixed.py` | Re-export (re-reads ezsaw3 DB with outliers, writes all SQL files) |
+| 5 | DB rebuild | All 7 databases dropped/recreated from the fixed SQL files |
 
 ---
 
-## Database Schema (Simplified)
+## Known Issues & Future Work
 
-```sql
--- Core tables (names configurable via db_config.json)
-vehicles (vin, make, model, body, manufacture_date)
-auto_door_stats (auto_door_stat_id, auto_door_stat_name, sampled, two_var,
-                 result_x, result_x_unit, result_y_lower_lim, result_y,
-                 result_y_upper_lim, result_y_unit)
-steps (id, fk_steps_auto_door_stats, door, vin)
--- door values: 'driver_front', 'driver_rear', 'passenger_front',
---              'passenger_rear', 'rear_hatch', 'hood'
-```
-
-**Relationship:** steps.JOINT_TABLE_STAT_FK → auto_door_stats.auto_door_stat_id, steps.vin → vehicles.vin
+1. **Connection pooling** — Every DB query opens a new TCP connection. With 1000 outliers, this means 1000 round-trips. `psycopg_pool` would fix this.
+2. **Credentials in plaintext** — `db_config*.json` contains `postgres/postgres`. Should use env vars before public release. (Partially addressed: env vars now take precedence over config file values.)
+3. **Qt colour tests** — 4 tests fail in offscreen mode due to Qt palette differences. Needs palette-aware assertions.
+4. **Unused config keys** — `EZ_VEHICLES_BODY_TYPE_FIELD`, `EZ_STAT_SAMPLED_FIELD`, `EZ_STAT_TWO_VAR_FIELD` are defined but never referenced in code.
+5. **`db/insert_data.py` has translation errors** — French column names are wrong (e.g., uses `nom_stat_porte_vehicule` instead of `nom_stat_porte_auto`). Dutch column names also wrong. Script should not be used.
+6. **`db/fix_sql.py` is broken** — Has syntax error, uses wrong door mappings, hardcodes dates. Should not be used.
 
 ---
 
-## How Queries Flow
+## File Map (for quick reference)
 
-```
-User enters VIN → vin_query(vin) → build_outlier_query(config)
-  → Returns all rows where result_y is outside tolerance bounds
-  → Filtered by selected door
-  → Deduplicated by (test_name, door_location)
-  → Reordered by stat_ordering.json branch rules (or alphabetical default)
-
-User navigates → _display_current_stat() → fetch_stat_family(name, door)
-  → Returns all vehicles' measurements for that test/door
-  → matricize_test_cases() → numpy (2, n) matrix for plotting
-  → PlotWidget shows scatter + highlight + tolerance lines + annotation
-```
-
----
-
-## Project Conventions
-
-- **Class naming:** `test_case` and `intro_form` are classes using snake_case (legacy convention — PascalCase would be standard)
-- **Config keys:** Prefixed with `EZ_` (e.g., `EZ_PG_DB`, `EZ_STAT_NAME_FIELD`)
-- **Locale keys:** Same `EZ_` prefix (e.g., `EZ_BTN_QUERY`, `EZ_STATUS_READY`)
-- **Private functions:** Prefixed with `_` (e.g., `_quote_identifier`, `_update_door_availability`)
-- **Module-level state:** `_LOCALE`, `_APP_CONFIG`, `DOOR_LOCATIONS` are set at import time from user_prefs.json
-- **Test approach:** pytest-qt with offscreen rendering; all DB calls mocked in widget tests
-- **Error handling:** DB failures surface to the status bar; corrupt JSON falls back to defaults
+| File | Purpose | Notes |
+|------|---------|-------|
+| `src/main.py` | PyQt5 GUI | `intro_form` (QMainWindow), plotting, navigation, dropdowns, on-plot annotations |
+| `src/core/auto_stat_facilities.py` | DB query layer + stat ordering | `vin_query`, `vehicle_query`, `fetch_stat_family`, `test_case`, `matricize_test_cases`, `apply_stat_ordering` |
+| `src/core/locale.py` | Locale/config system | `load_locale_strings`, `load_db_config_for_locale`, `translate_test_name`, `get_supported_db_configs` |
+| `src/core/__init__.py` | Public API re-exports | All of the above |
+| `tests/` | Test suite | pytest with offscreen Qt rendering; DB calls mocked |
+| `config/db_config.json` | Default EN DB config | Points to `ezsaw3` DB |
+| `config/db_config_de.json` | German DB config | Points to `ezsaw_de` DB |
+| `config/db_config_fr.json` | French DB config | Points to `ezsaw_fr` DB |
+| `config/db_config_es.json` | Spanish DB config | Points to `ezsaw_es` DB |
+| `config/db_config_nl.json` | Dutch DB config | Points to `ezsaw_nl` DB |
+| `config/stat_ordering.json` | Graph traversal order | Branch rules for reordering outlier stats |
+| `db/ezsaw_tables.sql` | EN schema + data | 1030 vehicles, 38205 stats, 38205 steps |
+| `db/ezsaw_tables_de.sql` | DE schema + data | Translated table/column names |
+| `db/ezsaw_tables_fr.sql` | FR schema + data | Uses `véhicules`, `stats_portes_automobiles`, `étapes` |
+| `db/ezsaw_tables_es.sql` | ES schema + data | Uses `vehículos`, `estadísticas_puertas_vehículos`, `pasos` |
+| `db/ezsaw_tables_nl.sql` | NL schema + data | Uses `voertuigen`, `statistieken_deuren_voertuigen`, `stappen` |
+| `db/insert_steps.sql` | Interleaved steps | BEGIN/DELETE/ALTER/INSERT/COMMIT for ezsaw DB |
+| `db/sql_fix.sql` | DB-side fix script | Reorders stat IDs, adds missing doors |
+| `export_fixed.py` | Active export script | Reads ezsaw3 DB, writes all SQL files |
+| `fix_db.py` | DB-side fixer | Python equivalent of sql_fix.sql |
+| `db/introduce_outliers.sql` | Outlier injection | Pushes ~10% of result_y outside tolerance bounds |
 
 ---
 
@@ -168,224 +202,16 @@ cd ezsaw
 ./venvs/test/bin/python -m pytest tests/ -v
 ```
 
-- `test_unit.py` — 44 tests (model, queries, locale, DB config, translation, stat ordering)
-- `test_widgets.py` — 22 tests (UI state, validation, navigation, plotting, dropdowns)
-- `test_stress.py` — 42 tests (1000-case plotting, edge cases, navigation stress, matricize)
-- 4 pre-existing failures in `TestDoorAvailability` — Qt offscreen renders `#a0a0a4` instead of `#ffffff`/`#808080`
-
----
-
-## Known Issues & Future Work
-
-1. **Connection pooling** — Every DB query opens a new TCP connection. With 1000 outliers, this means 1000 round-trips. `psycopg_pool` would fix this.
-2. **Credentials in plaintext** — `db_config*.json` contains `postgres/postgres`. Should use env vars before public release. (Partially addressed: env vars now take precedence over config file values.)
-3. **Qt colour tests** — 4 tests fail in offscreen mode due to Qt palette differences. Needs palette-aware assertions.
-4. **`_restart_app` uses `os.execl`** — Fixed: now uses `subprocess.Popen` + `app.quit()`.
-5. **Unused config keys** — `EZ_VEHICLES_BODY_TYPE_FIELD`, `EZ_STAT_SAMPLED_FIELD`, `EZ_STAT_TWO_VAR_FIELD` are defined but never referenced in code.
-
----
-
-## File Map (for quick reference)
-
-| File | Purpose | Key functions/classes |
-|------|---------|----------------------|
-| `src/main.py` | PyQt5 GUI | `intro_form` (QMainWindow), plotting, navigation, dropdowns, on-plot annotations |
-| `src/core/auto_stat_facilities.py` | DB query layer + stat ordering | `vin_query`, `vehicle_query`, `fetch_stat_family`, `test_case`, `matricize_test_cases`, `apply_stat_ordering` |
-| `src/core/locale.py` | Locale/config system | `load_locale_strings`, `load_db_config_for_locale`, `translate_test_name`, `get_supported_db_configs` |
-| `src/core/__init__.py` | Public API re-exports | All of the above |
-| `tests/conftest.py` | Test fixture | `_clean_prefs` (autouse, resets prefs + module globals) |
-| `config/db_config.json` | Default DB config | Table/column names, PG credentials, door locations |
-| `config/locale_en.json` | English UI strings | 35 keys including `EZ_TEST_NAMES` (9 test translations) |
-| `config/stat_ordering.json` | Graph traversal order | Branch rules for reordering outlier stats |
-| `config/user_prefs.json` | User preferences | `{"locale": "en", "db_config": "db_config.json"}` |
-| `db/ezsaw_tables*.sql` | DB schema + data | Table definitions, enum types, bulk INSERT statements |
-| `db/fix_sql.py` | SQL cleanup | Fixes SQL syntax issues |
-| `db/gen_psql.py` | PostgreSQL gen | Generates PostgreSQL-compatible SQL |
-| `db/generate_steps.py` | Steps generator | Creates test steps data |
-| `db/insert_data.py` | Data insertion | Inserts vehicle/stat data |
-| `data/logo/` | UI assets | Company logo PNG |
-| `data/pseudo_database/` | Test data | Mock database files |
-
-**Tech stack:** Python 3.12, PyQt5, pyqtgraph, numpy, psycopg3, PostgreSQL 16+
-
-**Test status:** 104 passing, 4 failing (pre-existing Qt offscreen colour rendering issue — not a code bug)
-
----
-
-## How the Data Model Works
-
-The database stores door check measurement results across three logical layers:
-
-1. **Vehicles** — VIN, make, model, manufacture date
-2. **Stats** (auto_door_stats) — Individual measurement results with x/y values and tolerance bounds (lower limit, upper limit)
-3. **Steps** (joint table) — Links stats to vehicles, includes door location
-
-An **outlier** is any measurement where the dependent variable (result_y) falls **outside** the tolerance bounds (result_y_lower_lim, result_y_upper_lim). These are the rows EZSAW surfaces to the user.
-
-A **stat family** is the collection of all measurements sharing the same test name and door location across all vehicles — this is what gets plotted as the scatter background for each graph, with the current vehicle's point highlighted in red.
-
-The `test_case` class is the core data object:
-```python
-test_case(test_name, x, x_unit, y_low, y, y_high, y_unit, vin, door_location)
-# Attributes: name, result_x, result_x_unit, result_y_lower, result_y,
-#             result_y_upper, result_y_unit, vehicle, location, out_of_tolerance
-```
-
----
-
-## Key Design Decisions
-
-### What the solo developer handles directly:
-- **High-level data structure and analysis logic** — how outliers are identified, how stat families are structured, how matricization works for plotting
-- **Core query design** — SQL query builders and the relationship between vehicles, stats, and the joint table
-- **Business logic** — door availability filtering, deduplication, navigation state management
-- **Stat ordering rules** — the branch-based traversal order in `stat_ordering.json` is designed by mechanical engineers
-
-### What AI handles:
-- **Front-end components** — PyQt5 widget layout, styling, pyqtgraph rendering
-- **Configurability layer** — JSON-driven locale system, DB config abstraction, `_quote_identifier()` for generic SQL
-- **Test scaffolding** — widget tests, stress tests, unit tests
-- **Code quality** — static analysis fixes, error handling, readability rewrites
-- **Graph annotations** — on-plot branch labels, auto-centering on outlier points
-
-This division lets the developer focus on high-level design decisions while AI accelerates the visual and plumbing work.
-
----
-
-## The Configurability System
-
-The entire DB schema is abstracted through `config/db_config.json`. No column names or table names are hardcoded in Python — they're referenced through config keys like `EZ_STAT_NAME_FIELD`, `EZ_JOINT_TABLE_DOOR_LOCATION_FIELD`, etc. This means:
-
-- The same codebase works against different DB schemas by swapping the config file
-- Each locale can point to a different database (e.g., `ezsaw3_de` for German data)
-- The DB dropdown in the UI lets users switch databases at runtime (triggers app restart)
-
-The locale system (`config/locale_*.json`) provides 35 UI text keys plus a `EZ_TEST_NAMES` dictionary for translating test names from English DB values to localized display strings.
-
-The stat ordering system (`config/stat_ordering.json`) controls the traversal order of outlier graphs. It uses branch rules: if the set of outlier stat names found for a vehicle is a superset of a branch's match list, the stats are reordered to match that branch's order. Unknown names are appended alphabetically. Falls back to alphabetical order if no branch matches.
-
----
-
-## Data Confidentiality
-
-> **Important:** The databases contain proprietary automotive measurement data from EZMetrology's customers. This data is confidential and company-specific. The tool is designed to work with customer-specific databases — each deployment has its own `db_config*.json` with connection credentials. The codebase itself does not contain real measurement data; all test data is synthetic/mock.
-
----
-
-## Database Schema (Simplified)
-
-```sql
--- Core tables (names configurable via db_config.json)
-vehicles (vin, make, model, body, manufacture_date)
-auto_door_stats (auto_door_stat_id, auto_door_stat_name, sampled, two_var,
-                 result_x, result_x_unit, result_y_lower_lim, result_y,
-                 result_y_upper_lim, result_y_unit)
-steps (id, fk_steps_auto_door_stats, door, vin)
--- door values: 'driver_front', 'driver_rear', 'passenger_front',
---              'passenger_rear', 'rear_hatch', 'hood'
-```
-
-**Relationship:** steps.JOINT_TABLE_STAT_FK → auto_door_stats.auto_door_stat_id, steps.vin → vehicles.vin
-
----
-
-## How Queries Flow
-
-```
-User enters VIN → vin_query(vin) → build_outlier_query(config)
-  → Returns all rows where result_y is outside tolerance bounds
-  → Filtered by selected door
-  → Deduplicated by (test_name, door_location)
-  → Reordered by stat_ordering.json branch rules (or alphabetical default)
-
-User navigates → _display_current_stat() → fetch_stat_family(name, door)
-  → Returns all vehicles' measurements for that test/door
-  → matricize_test_cases() → numpy (2, n) matrix for plotting
-  → PlotWidget shows scatter + highlight + tolerance lines + annotation
-```
+Requires PyQt5, pyqtgraph, numpy, psycopg. Tests cannot run without these dependencies installed.
 
 ---
 
 ## Project Conventions
 
-- **Class naming:** `test_case` and `intro_form` are classes using snake_case (legacy convention — PascalCase would be standard)
+- **Class naming:** `test_case` and `intro_form` are classes using snake_case (legacy convention)
 - **Config keys:** Prefixed with `EZ_` (e.g., `EZ_PG_DB`, `EZ_STAT_NAME_FIELD`)
 - **Locale keys:** Same `EZ_` prefix (e.g., `EZ_BTN_QUERY`, `EZ_STATUS_READY`)
 - **Private functions:** Prefixed with `_` (e.g., `_quote_identifier`, `_update_door_availability`)
 - **Module-level state:** `_LOCALE`, `_APP_CONFIG`, `DOOR_LOCATIONS` are set at import time from user_prefs.json
-- **Test approach:** pytest-qt with offscreen rendering; all DB calls mocked in widget tests
 - **Error handling:** DB failures surface to the status bar; corrupt JSON falls back to defaults
-
----
-
-## Running Tests
-
-```bash
-cd ezsaw
-./venvs/test/bin/python -m pytest tests/ -v
-```
-
-- `test_unit.py` — 44 tests (model, queries, locale, DB config, translation, stat ordering)
-- `test_widgets.py` — 22 tests (UI state, validation, navigation, plotting, dropdowns)
-- `test_stress.py` — 42 tests (1000-case plotting, edge cases, navigation stress, matricize)
-- 4 pre-existing failures in `TestDoorAvailability` — Qt offscreen renders `#a0a0a4` instead of `#ffffff`/`#808080`
-
----
-
-## Known Issues & Future Work
-
-1. **Connection pooling** — Every DB query opens a new TCP connection. With 1000 outliers, this means 1000 round-trips. `psycopg_pool` would fix this.
-2. **Credentials in plaintext** — `db_config*.json` contains `postgres/postgres`. Should use env vars before public release. (Partially addressed: env vars now take precedence over config file values.)
-3. **Qt colour tests** — 4 tests fail in offscreen mode due to Qt palette differences. Needs palette-aware assertions.
-4. **`_restart_app` uses `os.execl`** — Fixed: now uses `subprocess.Popen` + `app.quit()`.
-5. **Unused config keys** — `EZ_VEHICLES_BODY_TYPE_FIELD`, `EZ_STAT_SAMPLED_FIELD`, `EZ_STAT_TWO_VAR_FIELD` are defined but never referenced in code.
-
----
-
-## File Map (for quick reference)
-
-| File | Purpose | Key functions/classes |
-|------|---------|----------------------|
-| `src/main.py` | PyQt5 GUI | `intro_form` (QMainWindow), plotting, navigation, dropdowns, on-plot annotations |
-| `src/core/auto_stat_facilities.py` | DB query layer + stat ordering | `vin_query`, `vehicle_query`, `fetch_stat_family`, `test_case`, `matricize_test_cases`, `apply_stat_ordering` |
-| `src/core/locale.py` | Locale/config system | `load_locale_strings`, `load_db_config_for_locale`, `translate_test_name`, `get_supported_db_configs` |
-| `src/core/__init__.py` | Public API re-exports | All of the above |
-| `tests/conftest.py` | Test fixture | `_clean_prefs` (autouse, resets prefs + module globals) |
-| `config/db_config.json` | Default DB config | Table/column names, PG credentials, door locations |
-| `config/locale_en.json` | English UI strings | 35 keys including `EZ_TEST_NAMES` (9 test translations) |
-| `config/stat_ordering.json` | Graph traversal order | Branch rules for reordering outlier stats |
-| `config/user_prefs.json` | User preferences | `{"locale": "en", "db_config": "db_config.json"}` |
-| `db/ezsaw_tables*.sql` | DB schema + data | Table definitions, enum types, bulk INSERT statements |
-| `db/fix_sql.py` | SQL cleanup | Fixes SQL syntax issues |
-| `db/gen_psql.py` | PostgreSQL gen | Generates PostgreSQL-compatible SQL |
-| `db/generate_steps.py` | Steps generator | Creates test steps data |
-| `db/insert_data.py` | Data insertion | Inserts vehicle/stat data |
-| `data/logo/` | UI assets | Company logo PNG |
-| `data/pseudo_database/` | Test data | Mock database files |
-
----
-
-## V3.0.0B Features Implemented
-
-### Graph Reactivity (On-Plot Annotations)
-- The plot now auto-centers on the outlier point when a VIN or vehicle is queried
-- A branch-style annotation label extends from the outlier point showing:
-  - Translated test name
-  - result_y value and unit
-  - Tolerance range
-  - Deviation amount (how far out of tolerance, with direction)
-- A dashed connecting line ties the annotation to the point
-- The old `graph_info` QTextEdit panel has been removed — all info is now on the plot
-
-### JSON-Configurable Graph Traversal Order
-- `config/stat_ordering.json` defines branch rules for reordering outlier stats
-- Each branch has a `match` list (stat names that must all be present) and an `order` list (desired presentation order)
-- Unknown stat names are appended alphabetically at the end
-- Falls back to alphabetical order if no branch matches
-- The `apply_stat_ordering()` function in `auto_stat_facilities.py` applies these rules
-
-### Other Fixes
-- **`_restart_app`**: Changed from `os.execl` to `subprocess.Popen` + `app.quit()` for clean restart
-- **DB credentials**: Environment variables (`EZ_PG_DB`, `EZ_PG_USER`, `EZ_PG_PASS`, `EZ_PG_HOST`) now take precedence over config file values
-- **GUI clipping**: Added `QSizePolicy.Expanding` to the plot widget to prevent clipping on resize
-- **Graph info panel removed**: Replaced with on-plot annotation labels (branch-style text with connecting line)
+- **Test approach:** pytest-qt with offscreen rendering; all DB calls mocked in widget tests

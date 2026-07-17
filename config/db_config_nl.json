@@ -23,15 +23,15 @@
   "EZ_JOINT_TABLE_DOOR_LOCATION_DRIVER_REAR": "achterste_bestuurder",
   "EZ_JOINT_TABLE_DOOR_LOCATION_PASSENGER_FRONT": "voorste_passagier",
   "EZ_JOINT_TABLE_DOOR_LOCATION_PASSENGER_REAR": "achterste_passagier",
-  "EZ_JOINT_TABLE_DOOR_LOCATION_REAR_HATCH": "achterste_deksel",
+  "EZ_JOINT_TABLE_DOOR_LOCATION_REAR_HATCH": "achterklep",
   "EZ_DOOR_LOCATIONS": [
     {"label": "Voorste Bestuurder", "value": "voorste_bestuurder"},
     {"label": "Achterste Bestuurder", "value": "achterste_bestuurder"},
     {"label": "Voorste Passagier", "value": "voorste_passagier"},
     {"label": "Achterste Passagier", "value": "achterste_passagier"},
-    {"label": "Achterste Deksel", "value": "achterste_deksel"}
+    {"label": "Achterklep", "value": "achterklep"}
   ],
-  "EZ_PG_DB": "ezsaw3_nl",
+  "EZ_PG_DB": "ezsaw_nl",
   "EZ_PG_USER": "postgres",
   "EZ_PG_PASS": "postgres",
   "EZ_PG_HOST": "localhost"

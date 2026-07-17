@@ -23,15 +23,15 @@
   "EZ_JOINT_TABLE_DOOR_LOCATION_DRIVER_REAR": "hinten_fuehrer",
   "EZ_JOINT_TABLE_DOOR_LOCATION_PASSENGER_FRONT": "vorne_beifahrer",
   "EZ_JOINT_TABLE_DOOR_LOCATION_PASSENGER_REAR": "hinten_beifahrer",
-  "EZ_JOINT_TABLE_DOOR_LOCATION_REAR_HATCH": "heckspoiler",
+  "EZ_JOINT_TABLE_DOOR_LOCATION_REAR_HATCH": "heckklappe",
   "EZ_DOOR_LOCATIONS": [
     {"label": "Vorne Fahrer", "value": "vorne_fuehrer"},
     {"label": "Hinten Fahrer", "value": "hinten_fuehrer"},
     {"label": "Vorne Beifahrer", "value": "vorne_beifahrer"},
     {"label": "Hinten Beifahrer", "value": "hinten_beifahrer"},
-    {"label": "Heckspoiler", "value": "heckspoiler"}
+    {"label": "Heckklappe", "value": "heckklappe"}
   ],
-  "EZ_PG_DB": "ezsaw3_de",
+  "EZ_PG_DB": "ezsaw_de",
   "EZ_PG_USER": "postgres",
   "EZ_PG_PASS": "postgres",
   "EZ_PG_HOST": "localhost"

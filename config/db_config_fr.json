@@ -23,15 +23,15 @@
   "EZ_JOINT_TABLE_DOOR_LOCATION_DRIVER_REAR": "arrière_driver",
   "EZ_JOINT_TABLE_DOOR_LOCATION_PASSENGER_FRONT": "avant_passager",
   "EZ_JOINT_TABLE_DOOR_LOCATION_PASSENGER_REAR": "arrière_passager",
-  "EZ_JOINT_TABLE_DOOR_LOCATION_REAR_HATCH": "capot_arrière",
+  "EZ_JOINT_TABLE_DOOR_LOCATION_REAR_HATCH": "hayon",
   "EZ_DOOR_LOCATIONS": [
     {"label": "Avant Conducteur", "value": "avant_driver"},
     {"label": "Arrière Conducteur", "value": "arrière_driver"},
     {"label": "Avant Passager", "value": "avant_passager"},
     {"label": "Arrière Passager", "value": "arrière_passager"},
-    {"label": "Capot Arrière", "value": "capot_arrière"}
+    {"label": "Hayon", "value": "hayon"}
   ],
-  "EZ_PG_DB": "ezsaw3_fr",
+  "EZ_PG_DB": "ezsaw_fr",
   "EZ_PG_USER": "postgres",
   "EZ_PG_PASS": "postgres",
   "EZ_PG_HOST": "localhost"
