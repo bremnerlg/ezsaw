@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Fix SQL files by properly regenerating auto_door_stats and steps blocks."""
+"""
+DEPRECATED: This script has been superseded by fix_db.py and export_fixed.py
+at the project root. Kept for reference only — do not use for new work.
+
+Fix SQL files by properly regenerating auto_door_stats and steps blocks.
+"""
 
 import re
 import random

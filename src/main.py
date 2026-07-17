@@ -6,7 +6,6 @@ data by VIN or make/model/year, plotting outlier results, and navigating
 through stat families with pyqtgraph.
 """
 import sys
-import os
 from pathlib import Path
 
 _PROJECT_ROOT = str(Path(__file__).resolve().parent.parent)
@@ -493,6 +492,7 @@ class intro_form(QMainWindow):
     # -----------------------------------------------------------------------
 
     def _populate_makes(self):
+        """Populate the make combo box from the database."""
         self.make_combo.blockSignals(True)
         self.make_combo.clear()
         self.make_combo.addItem("")
@@ -504,6 +504,7 @@ class intro_form(QMainWindow):
         self.make_combo.blockSignals(False)
 
     def _on_make_changed(self, index):
+        """Populate models when the selected make changes."""
         self.model_combo.blockSignals(True)
         self.model_combo.clear()
         self.model_combo.addItem("")
@@ -525,6 +526,7 @@ class intro_form(QMainWindow):
         self.year_combo.blockSignals(False)
 
     def _on_model_changed(self, index):
+        """Populate years when the selected model changes."""
         self.year_combo.blockSignals(True)
         self.year_combo.clear()
         self.year_combo.addItem("")
@@ -546,6 +548,7 @@ class intro_form(QMainWindow):
     # -----------------------------------------------------------------------
 
     def _clear_plot(self):
+        """Clear the plot widget and reset the title."""
         self.plot.clear()
         self.plot.setTitle('')
 
@@ -645,6 +648,7 @@ class intro_form(QMainWindow):
     # -----------------------------------------------------------------------
 
     def _update_nav_buttons(self):
+        """Enable/disable prev/next buttons based on current position."""
         has_items = len(self.stats_selection) > 0
         self.button_next.setEnabled(
             has_items and self.current_stat < len(self.stats_selection) - 1
@@ -668,6 +672,7 @@ class intro_form(QMainWindow):
             self._display_current_stat()
 
     def _display_current_stat(self):
+        """Render the current stat's plot and update status/navigation."""
         if not self.stats_selection:
             return
         stat = self.stats_selection[self.current_stat]
@@ -709,6 +714,7 @@ class intro_form(QMainWindow):
         self.stats_selection = apply_stat_ordering(deduped)
 
     def _apply_query_results(self, raw_outliers, label):
+        """Process raw query results: filter by door, dedupe, and display."""
         self._update_door_availability(raw_outliers)
 
         if not raw_outliers:
@@ -741,6 +747,7 @@ class intro_form(QMainWindow):
     # -----------------------------------------------------------------------
 
     def init_vehicle_plots(self):
+        """Query outliers by make/model/year and display results."""
         make = self.make_combo.currentText()
         model = self.model_combo.currentText()
         year = self.year_combo.currentText()
@@ -759,6 +766,7 @@ class intro_form(QMainWindow):
         self._apply_query_results(raw_outliers, f'{make} {model} {year}')
 
     def init_vin_plots(self):
+        """Query outliers by VIN and display results."""
         vin = self.edit_vin.text().strip()
         if not vin:
             self.statusBar().showMessage(self.locale['EZ_STATUS_ENTER_VIN'])

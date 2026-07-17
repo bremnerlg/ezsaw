@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Generate psql insert script with interleaved stat categories.
+"""
+DEPRECATED: This script has been superseded by fix_db.py and export_fixed.py
+at the project root. Kept for reference only — do not use for new work.
+
+Generate psql insert script with interleaved stat categories.
 
 Every 9 consecutive stat IDs span all 9 test types,
 so each vehicle-door gets one of each type.

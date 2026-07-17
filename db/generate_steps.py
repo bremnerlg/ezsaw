@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Generate SQL INSERT statements for auto_door_stats and steps tables.
+"""
+DEPRECATED: This script has been superseded by fix_db.py and export_fixed.py
+at the project root. Kept for reference only — do not use for new work.
+
+Generate SQL INSERT statements for auto_door_stats and steps tables.
 
 For each vehicle-door combination, assigns 9 consecutive auto_door_stats IDs
 using sequential chunking. Adds new auto_door_stats entries as needed.

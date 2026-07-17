@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Insert new auto_door_stats and steps data into SQL locale files.
+"""
+DEPRECATED: This script has been superseded by fix_db.py and export_fixed.py
+at the project root. Kept for reference only — do not use for new work.
+
+Insert new auto_door_stats and steps data into SQL locale files.
 
 Uses interleaved stat categories so every 9 consecutive IDs
 span all 9 test types.

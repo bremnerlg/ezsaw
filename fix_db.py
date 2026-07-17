@@ -10,7 +10,6 @@ Fixes:
 
 import re
 import json
-import os
 import random
 import csv
 import io
@@ -362,18 +361,6 @@ def generate_steps(stats, locale, vehicles):
     local_mode = locale if locale != "en" else None
     steps = []
 
-    # Build mapping: (vin, door) → list of stat_ids
-    # Stats are ordered by ID, which follows stat_ordering.json within each block
-    # Each block of 9 corresponds to one (vin, door) combination
-
-    vin_door_map = {}  # (vin, door) → list of stat_ids
-    for vehicle_idx, (vin, make, model, body, date) in enumerate(vehicles):
-        doors = DOOR_ASSIGNMENTS[body]
-        for door in doors:
-            key = (vin, door)
-
-    # Actually, the order of stats matches the order of vehicles × doors × positions
-    # So we can map directly
     stat_idx = 0
     for vin, make, model, body, date in vehicles:
         doors = DOOR_ASSIGNMENTS[body]
