@@ -553,87 +553,92 @@ class intro_form(QMainWindow):
         """Render the outlier plot: family scatter (green), highlighted
         point (red), tolerance bound lines (dashed green), and a
         branch-style annotation label on the outlier point."""
-        self._clear_plot()
+        try:
+            self._clear_plot()
 
-        translated_name = translate_test_name(stat.name, self.locale)
-        self.plot.setTitle(translated_name, color=LIME, size='13pt')
-        self.plot.setLabel('bottom', stat.result_x_unit, color=TEXT)
-        self.plot.setLabel('left', stat.result_y_unit, color=TEXT)
+            translated_name = translate_test_name(stat.name, self.locale)
+            self.plot.setTitle(translated_name, color=LIME, size='13pt')
+            self.plot.setLabel('bottom', stat.result_x_unit, color=TEXT)
+            self.plot.setLabel('left', stat.result_y_unit, color=TEXT)
 
-        if family:
-            family_matrix = matricize_test_cases(family)
-            if family_matrix.shape[1] > 0:
-                self.plot.plot(
-                    family_matrix[0], family_matrix[1],
-                    pen=None, symbol='o', symbolBrush=LIME_DIM, symbolSize=6,
-                )
+            if family:
+                family_matrix = matricize_test_cases(family)
+                if family_matrix.shape[1] > 0:
+                    self.plot.plot(
+                        family_matrix[0], family_matrix[1],
+                        pen=None, symbol='o', symbolBrush=LIME_DIM, symbolSize=6,
+                    )
 
-        x_val = float(stat.result_x)
-        y_val = float(stat.result_y)
-        self.plot.plot(
-            np.array([x_val]),
-            np.array([y_val]),
-            pen=None, symbol='o', symbolBrush='#ff4444', symbolSize=10,
-        )
-
-        self.plot.addLine(
-            y=stat.result_y_lower,
-            pen=pg.mkPen(LIME, width=1.5, style=pg.QtCore.Qt.DashLine),
-        )
-        self.plot.addLine(
-            y=stat.result_y_upper,
-            pen=pg.mkPen(LIME, width=1.5, style=pg.QtCore.Qt.DashLine),
-        )
-
-        # Center the plot view on the outlier point
-        margin_x = max(abs(float(stat.result_x)) * 0.3, 5.0)
-        margin_y = max(abs(float(stat.result_y)) * 0.3, 5.0)
-        self.plot.setXRange(
-            float(stat.result_x) - margin_x,
-            float(stat.result_x) + margin_x,
-        )
-        self.plot.setYRange(
-            float(stat.result_y) - margin_y,
-            float(stat.result_y) + margin_y,
-        )
-
-        # Branch-style annotation label on the graph
-        deviation = ''
-        if stat.out_of_tolerance:
-            if stat.result_y < stat.result_y_lower:
-                deviation = f'{abs(stat.result_y_lower - stat.result_y):.2f} {stat.result_y_unit} below lower limit'
-            else:
-                deviation = f'{abs(stat.result_y_upper - stat.result_y):.2f} {stat.result_y_unit} above upper limit'
-
-        label_text = (
-            f'<span style="color: #ff4444; font-weight: bold; font-size: 13px;">'
-            f'{translated_name}</span><br>'
-            f'<span style="color: #e0e0e0; font-size: 11px;">'
-            f'result_y: {stat.result_y} {stat.result_y_unit}</span><br>'
-            f'<span style="color: #e0e0e0; font-size: 11px;">'
-            f'Tolerance: [{stat.result_y_lower} \u2013 {stat.result_y_upper}] {stat.result_y_unit}</span>'
-        )
-        if deviation:
-            label_text += (
-                f'<br><span style="color: #ff8888; font-size: 11px; font-weight: bold;">'
-                f'\u2191 {deviation}</span>'
+            x_val = float(stat.result_x)
+            y_val = float(stat.result_y)
+            self.plot.plot(
+                np.array([x_val]),
+                np.array([y_val]),
+                pen=None, symbol='o', symbolBrush='#ff4444', symbolSize=10,
             )
 
-        annotation = pg.TextItem(
-            html=label_text,
-            anchor=(0, 1),
-            border=pg.mkPen(LIME_DIM, width=1),
-            fill=pg.mkColor(20, 20, 20, 220),
-        )
-        annotation.setPos(x_val, y_val)
-        self.plot.addItem(annotation)
+            self.plot.addLine(
+                y=stat.result_y_lower,
+                pen=pg.mkPen(LIME, width=1.5, style=pg.QtCore.Qt.DashLine),
+            )
+            self.plot.addLine(
+                y=stat.result_y_upper,
+                pen=pg.mkPen(LIME, width=1.5, style=pg.QtCore.Qt.DashLine),
+            )
 
-        line = pg.PlotDataItem(
-            [x_val, x_val + margin_x * 0.4],
-            [y_val, y_val],
-            pen=pg.mkPen(LIME_DIM, width=1, style=pg.QtCore.Qt.DashLine),
-        )
-        self.plot.addItem(line)
+            # Center the plot view on the outlier point
+            margin_x = max(abs(float(stat.result_x)) * 0.3, 5.0)
+            margin_y = max(abs(float(stat.result_y)) * 0.3, 5.0)
+            self.plot.setXRange(
+                float(stat.result_x) - margin_x,
+                float(stat.result_x) + margin_x,
+            )
+            self.plot.setYRange(
+                float(stat.result_y) - margin_y,
+                float(stat.result_y) + margin_y,
+            )
+
+            # Branch-style annotation label on the graph
+            deviation = ''
+            if stat.out_of_tolerance:
+                if stat.result_y < stat.result_y_lower:
+                    deviation = f'{abs(stat.result_y_lower - stat.result_y):.2f} {stat.result_y_unit} below lower limit'
+                else:
+                    deviation = f'{abs(stat.result_y_upper - stat.result_y):.2f} {stat.result_y_unit} above upper limit'
+
+            label_text = (
+                f'<span style="color: #ff4444; font-weight: bold; font-size: 13px;">'
+                f'{translated_name}</span><br>'
+                f'<span style="color: #e0e0e0; font-size: 11px;">'
+                f'result_y: {stat.result_y} {stat.result_y_unit}</span><br>'
+                f'<span style="color: #e0e0e0; font-size: 11px;">'
+                f'Tolerance: [{stat.result_y_lower} \u2013 {stat.result_y_upper}] {stat.result_y_unit}</span>'
+            )
+            if deviation:
+                label_text += (
+                    f'<br><span style="color: #ff8888; font-size: 11px; font-weight: bold;">'
+                    f'\u2191 {deviation}</span>'
+                )
+
+            annotation = pg.TextItem(
+                html=label_text,
+                anchor=(0, 1),
+                border=pg.mkPen(LIME_DIM, width=1),
+                fill=pg.mkColor(20, 20, 20, 220),
+            )
+            annotation.setPos(x_val, y_val)
+            self.plot.addItem(annotation)
+
+            line = pg.PlotDataItem(
+                [x_val, x_val + margin_x * 0.4],
+                [y_val, y_val],
+                pen=pg.mkPen(LIME_DIM, width=1, style=pg.QtCore.Qt.DashLine),
+            )
+            self.plot.addItem(line)
+        except Exception as e:
+            self._clear_plot()
+            self.plot.setTitle(f'Error: {e}', color='#ff4444', size='13pt')
+            self.statusBar().showMessage(f'Plot error: {e}')
 
     # -----------------------------------------------------------------------
     # Navigation (prev / next through outlier list)
@@ -674,7 +679,11 @@ class intro_form(QMainWindow):
             self.statusBar().showMessage(f'Failed to load family: {e}')
             return
         family = init_test_case_list(family_raw)
-        self.plot_selection(stat, family)
+        try:
+            self.plot_selection(stat, family)
+        except Exception as e:
+            self._clear_plot()
+            self.statusBar().showMessage(f'Plot error: {e}')
         self._update_nav_buttons()
         translated_name = translate_test_name(stat.name, self.locale)
         self.statusBar().showMessage(
