@@ -15,6 +15,8 @@ from src.core.auto_stat_facilities import (
     build_outlier_query,
     build_outlier_query_by_vehicle,
     build_stat_family_query,
+    apply_stat_ordering,
+    load_stat_ordering,
 )
 from src.core.locale import (
     load_locale_strings,
@@ -436,3 +438,50 @@ class TestTranslateTestName:
             test_names = strings.get('EZ_TEST_NAMES', {})
             for name in english_names:
                 assert name in test_names, f'{name} missing from {code}'
+
+
+# ===========================================================================
+# Stat ordering
+# ===========================================================================
+
+class TestStatOrdering:
+    """Verify that apply_stat_ordering correctly reorders stats
+    according to stat_ordering.json branch rules."""
+
+    def _make_tc(self, name, x=1.0, y=2.0):
+        return test_case(name, x, 'mm', 0.0, y, 100.0, 'mm', 'V', 'df')
+
+    def test_load_stat_ordering_returns_dict(self):
+        ordering = load_stat_ordering()
+        assert 'default_order' in ordering
+        assert 'branches' in ordering
+
+    def test_alphabetical_default(self):
+        stats = [
+            self._make_tc('zebra'),
+            self._make_tc('alpha'),
+            self._make_tc('gamma'),
+        ]
+        result = apply_stat_ordering(stats)
+        assert [s.name for s in result] == ['alpha', 'gamma', 'zebra']
+
+    def test_empty_list(self):
+        assert apply_stat_ordering([]) == []
+
+    def test_single_stat(self):
+        stats = [self._make_tc('alpha')]
+        result = apply_stat_ordering(stats)
+        assert len(result) == 1
+        assert result[0].name == 'alpha'
+
+    def test_branch_ordering_applied(self):
+        stats = [
+            self._make_tc('Hinge Bind (Sampled)'),
+            self._make_tc('Striker Alignment (Sampled)'),
+            self._make_tc('Closing Energy from First Position (Sampled)'),
+        ]
+        result = apply_stat_ordering(stats)
+        # The branch in stat_ordering.json should reorder these
+        assert result[0].name == 'Striker Alignment (Sampled)'
+        assert result[1].name == 'Hinge Bind (Sampled)'
+        assert result[2].name == 'Closing Energy from First Position (Sampled)'

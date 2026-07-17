@@ -20,6 +20,8 @@ from src.core.auto_stat_facilities import (
     build_stat_family_query,
     load_db_config,
     ezsaw_default_connect,
+    apply_stat_ordering,
+    load_stat_ordering,
 )
 from src.core.locale import (
     load_locale_strings,

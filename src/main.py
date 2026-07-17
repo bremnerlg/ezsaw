@@ -16,7 +16,7 @@ if _PROJECT_ROOT not in sys.path:
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout,
     QHBoxLayout, QPushButton, QLineEdit, QListWidget,
-    QLabel, QFrame, QComboBox, QTextEdit,
+    QLabel, QFrame, QComboBox, QSizePolicy,
 )
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtCore import Qt
@@ -26,6 +26,7 @@ from src.core.auto_stat_facilities import (
     vin_query, vehicle_query, fetch_stat_family,
     fetch_makes, fetch_models, fetch_years,
     init_test_case_list, matricize_test_cases,
+    apply_stat_ordering,
 )
 from src.core.locale import (
     load_locale_strings, load_db_config_for_locale,
@@ -207,18 +208,6 @@ QComboBox QAbstractItemView {{
     font-size: 13px;
 }}
 
-QTextEdit {{
-    background-color: {BG_INPUT};
-    color: {TEXT};
-    border: 1px solid {BORDER};
-    border-radius: 4px;
-    padding: 8px 12px;
-    font-size: 12px;
-    font-weight: 400;
-    font-family: "SF Mono", "Cascadia Code", "JetBrains Mono", "Fira Code", monospace;
-    line-height: 1.5;
-}}
-
 QFrame#separator {{
     background-color: {LIME_DARK};
     max-height: 1px;
@@ -237,7 +226,6 @@ class intro_form(QMainWindow):
 
     def __init__(self, locale_strings=None, db_config=None):
         super().__init__()
-        # Use module-level defaults unless overridden (e.g. in tests)
         if locale_strings is None:
             locale_strings = _LOCALE
         if db_config is None:
@@ -273,7 +261,6 @@ class intro_form(QMainWindow):
         header.addWidget(self.title)
         header.addStretch()
 
-        # --- language selector ---
         lang_label = QLabel(self.locale['EZ_LABEL_LANGUAGE'])
         lang_label.setStyleSheet(
             f'color: {TEXT_DIM}; font-size: 12px; font-weight: 500;'
@@ -285,7 +272,6 @@ class intro_form(QMainWindow):
         current_locale = get_current_locale()
         for code, name in get_supported_locales():
             self.lang_combo.addItem(name, code)
-        # Select the currently active locale in the dropdown
         for i in range(self.lang_combo.count()):
             if self.lang_combo.itemData(i) == current_locale:
                 self.lang_combo.setCurrentIndex(i)
@@ -293,7 +279,6 @@ class intro_form(QMainWindow):
         self.lang_combo.currentIndexChanged.connect(self._on_language_changed)
         header.addWidget(self.lang_combo)
 
-        # --- database selector ---
         db_label = QLabel(self.locale['EZ_LABEL_DATABASE'])
         db_label.setStyleSheet(
             f'color: {TEXT_DIM}; font-size: 12px; font-weight: 500;'
@@ -314,7 +299,6 @@ class intro_form(QMainWindow):
         self.db_combo.currentIndexChanged.connect(self._on_db_changed)
         header.addWidget(self.db_combo)
 
-        # --- separator line ---
         sep = QFrame()
         sep.setObjectName('separator')
         sep.setFrameShape(QFrame.HLine)
@@ -382,15 +366,6 @@ class intro_form(QMainWindow):
 
         controls.addStretch()
 
-        # --- graph info box (read-only HTML display) ---
-        self.graph_info = QTextEdit()
-        self.graph_info.setReadOnly(True)
-        self.graph_info.setFixedHeight(90)
-        self.graph_info.setPlaceholderText(
-            self.locale['EZ_GRAPH_PLACEHOLDER']
-        )
-        self.graph_info.setMaximumWidth(400)
-
         # --- navigation row: prev/next + status counter ---
         nav = QHBoxLayout()
         nav.setSpacing(10)
@@ -423,19 +398,19 @@ class intro_form(QMainWindow):
         self.plot.setTitle('', color=LIME, size='13pt')
         self.plot.setLabel('bottom', '', color=TEXT)
         self.plot.setLabel('left', '', color=TEXT)
+        self.plot.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         # --- assemble layout ---
         root.addLayout(header)
         root.addWidget(sep)
         root.addLayout(controls)
-        root.addWidget(self.graph_info)
         root.addLayout(nav)
         root.addWidget(self.plot, stretch=1)
 
         # --- application state ---
-        self.stats_selection = []   # deduped list of test_case objects for current query
-        self.current_stat = 0       # index into stats_selection
-        self.all_outliers = []      # raw query results before door filtering
+        self.stats_selection = []
+        self.current_stat = 0
+        self.all_outliers = []
 
         # --- connect signals ---
         self.button_next.clicked.connect(self.show_next)
@@ -453,40 +428,33 @@ class intro_form(QMainWindow):
     # -----------------------------------------------------------------------
 
     def _on_language_changed(self, index):
-        """Save the new locale preference and restart the app."""
         new_locale = self.lang_combo.itemData(index)
         if new_locale and new_locale != get_current_locale():
             set_locale(new_locale)
             self._restart_app()
 
     def _on_db_changed(self, index):
-        """Save the new DB config preference and restart the app."""
         new_db_file = self.db_combo.itemData(index)
         if new_db_file and new_db_file != get_current_db_config_file():
             set_current_db_config_file(new_db_file)
             self._restart_app()
 
     def _restart_app(self):
-        """Replace the current process with a fresh instance."""
-        app = QApplication.instance()
-        app.quit()
-        os.execl(sys.executable, sys.executable, *sys.argv)
+        import subprocess
+        subprocess.Popen([sys.executable] + sys.argv)
+        QApplication.instance().quit()
 
     # -----------------------------------------------------------------------
     # Door selection
     # -----------------------------------------------------------------------
 
     def _selected_door_key(self):
-        """Return the door location key for the currently selected door,
-        or None if no valid selection."""
         row = self.door_location_widget.currentRow()
         if row < 0 or row >= len(DOOR_LOCATIONS):
             return None
         return DOOR_LOCATIONS[row][1]
 
     def _update_door_availability(self, raw_outliers):
-        """Grey out doors that have no data in the current outlier set,
-        and enable doors that do."""
         available = set(r.get('door_location', '') for r in raw_outliers)
         current_row = self.door_location_widget.currentRow()
         for i in range(self.door_location_widget.count()):
@@ -498,12 +466,10 @@ class intro_form(QMainWindow):
             else:
                 item.setFlags(item.flags() & ~(Qt.ItemIsEnabled | Qt.ItemIsSelectable))
                 item.setForeground(Qt.gray)
-        # Restore previous selection if still valid
         if current_row >= 0:
             self.door_location_widget.setCurrentRow(current_row)
 
     def _on_door_changed(self, row):
-        """Re-filter outliers when the user selects a different door."""
         if not self.all_outliers or not self.stats_selection:
             return
         door_key = self._selected_door_key()
@@ -527,7 +493,6 @@ class intro_form(QMainWindow):
     # -----------------------------------------------------------------------
 
     def _populate_makes(self):
-        """Load the make dropdown from the database."""
         self.make_combo.blockSignals(True)
         self.make_combo.clear()
         self.make_combo.addItem("")
@@ -539,7 +504,6 @@ class intro_form(QMainWindow):
         self.make_combo.blockSignals(False)
 
     def _on_make_changed(self, index):
-        """When make changes: reset model and year, then load new models."""
         self.model_combo.blockSignals(True)
         self.model_combo.clear()
         self.model_combo.addItem("")
@@ -561,7 +525,6 @@ class intro_form(QMainWindow):
         self.year_combo.blockSignals(False)
 
     def _on_model_changed(self, index):
-        """When model changes: reset year, then load new years."""
         self.year_combo.blockSignals(True)
         self.year_combo.clear()
         self.year_combo.addItem("")
@@ -579,49 +542,17 @@ class intro_form(QMainWindow):
         self.year_combo.blockSignals(False)
 
     # -----------------------------------------------------------------------
-    # Graph info panel (HTML display of current stat details)
-    # -----------------------------------------------------------------------
-
-    def _update_graph_info(self, stat):
-        """Populate the graph info box with details for the given stat."""
-        label_style = f'color: {TEXT_DIM}; font-weight: 500; font-size: 11px;'
-        value_style = f'color: {TEXT}; font-size: 12px;'
-        tol_text = (
-            self.locale['EZ_TOL_YES'] if stat.out_of_tolerance
-            else self.locale['EZ_TOL_NO']
-        )
-        translated_name = translate_test_name(stat.name, self.locale)
-        lines = [
-            f'<span style="{label_style}">{self.locale["EZ_INFO_VEHICLE"]}</span> '
-            f'<span style="{value_style}">{stat.vehicle}</span>',
-            f'<span style="{label_style}">{self.locale["EZ_INFO_TEST"]}</span> '
-            f'<span style="{value_style}">{translated_name}</span>',
-            f'<span style="{label_style}">{self.locale["EZ_INFO_DOOR"]}</span> '
-            f'<span style="{value_style}">{stat.location}</span>',
-            f'<span style="{label_style}">{self.locale["EZ_INFO_RESULT_X"]}</span> '
-            f'<span style="{value_style}">{stat.result_x} {stat.result_x_unit}</span>',
-            f'<span style="{label_style}">{self.locale["EZ_INFO_RESULT_Y"]}</span> '
-            f'<span style="{value_style}">{stat.result_y} {stat.result_y_unit}</span>',
-            f'<span style="{label_style}">{self.locale["EZ_INFO_TOLERANCE"]}</span> '
-            f'<span style="{value_style}">[{stat.result_y_lower} \u2013 {stat.result_y_upper}]</span>',
-            f'<span style="{label_style}">{self.locale["EZ_INFO_OUT_OF_TOLERANCE"]}</span> '
-            f'<span style="{value_style}">{tol_text}</span>',
-        ]
-        self.graph_info.setHtml("<br>".join(lines))
-
-    # -----------------------------------------------------------------------
     # Plot rendering
     # -----------------------------------------------------------------------
 
     def _clear_plot(self):
-        """Remove all items from the plot and clear the info panel."""
         self.plot.clear()
         self.plot.setTitle('')
-        self.graph_info.clear()
 
     def plot_selection(self, stat, family):
         """Render the outlier plot: family scatter (green), highlighted
-        point (red), and tolerance bound lines (dashed green)."""
+        point (red), tolerance bound lines (dashed green), and a
+        branch-style annotation label on the outlier point."""
         self._clear_plot()
 
         translated_name = translate_test_name(stat.name, self.locale)
@@ -629,7 +560,6 @@ class intro_form(QMainWindow):
         self.plot.setLabel('bottom', stat.result_x_unit, color=TEXT)
         self.plot.setLabel('left', stat.result_y_unit, color=TEXT)
 
-        # Plot the family scatter (all vehicles for this test/door)
         if family:
             family_matrix = matricize_test_cases(family)
             if family_matrix.shape[1] > 0:
@@ -638,14 +568,14 @@ class intro_form(QMainWindow):
                     pen=None, symbol='o', symbolBrush=LIME_DIM, symbolSize=6,
                 )
 
-        # Highlight the current outlier point in red
+        x_val = float(stat.result_x)
+        y_val = float(stat.result_y)
         self.plot.plot(
-            np.array([float(stat.result_x)]),
-            np.array([float(stat.result_y)]),
+            np.array([x_val]),
+            np.array([y_val]),
             pen=None, symbol='o', symbolBrush='#ff4444', symbolSize=10,
         )
 
-        # Draw tolerance bound lines
         self.plot.addLine(
             y=stat.result_y_lower,
             pen=pg.mkPen(LIME, width=1.5, style=pg.QtCore.Qt.DashLine),
@@ -655,12 +585,61 @@ class intro_form(QMainWindow):
             pen=pg.mkPen(LIME, width=1.5, style=pg.QtCore.Qt.DashLine),
         )
 
+        # Center the plot view on the outlier point
+        margin_x = max(abs(float(stat.result_x)) * 0.3, 5.0)
+        margin_y = max(abs(float(stat.result_y)) * 0.3, 5.0)
+        self.plot.setXRange(
+            float(stat.result_x) - margin_x,
+            float(stat.result_x) + margin_x,
+        )
+        self.plot.setYRange(
+            float(stat.result_y) - margin_y,
+            float(stat.result_y) + margin_y,
+        )
+
+        # Branch-style annotation label on the graph
+        deviation = ''
+        if stat.out_of_tolerance:
+            if stat.result_y < stat.result_y_lower:
+                deviation = f'{abs(stat.result_y_lower - stat.result_y):.2f} {stat.result_y_unit} below lower limit'
+            else:
+                deviation = f'{abs(stat.result_y_upper - stat.result_y):.2f} {stat.result_y_unit} above upper limit'
+
+        label_text = (
+            f'<span style="color: #ff4444; font-weight: bold; font-size: 13px;">'
+            f'{translated_name}</span><br>'
+            f'<span style="color: #e0e0e0; font-size: 11px;">'
+            f'result_y: {stat.result_y} {stat.result_y_unit}</span><br>'
+            f'<span style="color: #e0e0e0; font-size: 11px;">'
+            f'Tolerance: [{stat.result_y_lower} \u2013 {stat.result_y_upper}] {stat.result_y_unit}</span>'
+        )
+        if deviation:
+            label_text += (
+                f'<br><span style="color: #ff8888; font-size: 11px; font-weight: bold;">'
+                f'\u2191 {deviation}</span>'
+            )
+
+        annotation = pg.TextItem(
+            html=label_text,
+            anchor=(0, 1),
+            border=pg.mkPen(LIME_DIM, width=1),
+            fill=pg.mkColor(20, 20, 20, 220),
+        )
+        annotation.setPos(x_val, y_val)
+        self.plot.addItem(annotation)
+
+        line = pg.PlotDataItem(
+            [x_val, x_val + margin_x * 0.4],
+            [y_val, y_val],
+            pen=pg.mkPen(LIME_DIM, width=1, style=pg.QtCore.Qt.DashLine),
+        )
+        self.plot.addItem(line)
+
     # -----------------------------------------------------------------------
     # Navigation (prev / next through outlier list)
     # -----------------------------------------------------------------------
 
     def _update_nav_buttons(self):
-        """Enable/disable prev/next buttons and update the counter label."""
         has_items = len(self.stats_selection) > 0
         self.button_next.setEnabled(
             has_items and self.current_stat < len(self.stats_selection) - 1
@@ -674,19 +653,16 @@ class intro_form(QMainWindow):
             self.label_status.setText('')
 
     def show_next(self):
-        """Navigate to the next outlier in the selection."""
         if self.current_stat < len(self.stats_selection) - 1:
             self.current_stat += 1
             self._display_current_stat()
 
     def show_prev(self):
-        """Navigate to the previous outlier in the selection."""
         if self.current_stat > 0:
             self.current_stat -= 1
             self._display_current_stat()
 
     def _display_current_stat(self):
-        """Fetch the stat family from DB, plot it, and update the info panel."""
         if not self.stats_selection:
             return
         stat = self.stats_selection[self.current_stat]
@@ -699,7 +675,6 @@ class intro_form(QMainWindow):
             return
         family = init_test_case_list(family_raw)
         self.plot_selection(stat, family)
-        self._update_graph_info(stat)
         self._update_nav_buttons()
         translated_name = translate_test_name(stat.name, self.locale)
         self.statusBar().showMessage(
@@ -714,7 +689,7 @@ class intro_form(QMainWindow):
 
     def _dedupe_stats_selection(self, raw_entries):
         """Convert raw query rows to test_case objects, removing duplicates
-        by (name, location) key."""
+        by (name, location) key, then apply stat ordering."""
         seen = set()
         deduped = []
         for tc in init_test_case_list(raw_entries):
@@ -722,11 +697,9 @@ class intro_form(QMainWindow):
             if key not in seen:
                 seen.add(key)
                 deduped.append(tc)
-        self.stats_selection = deduped
+        self.stats_selection = apply_stat_ordering(deduped)
 
     def _apply_query_results(self, raw_outliers, label):
-        """Process query results: update door availability, filter by
-        selected door, deduplicate, and display the first outlier."""
         self._update_door_availability(raw_outliers)
 
         if not raw_outliers:
@@ -739,10 +712,8 @@ class intro_form(QMainWindow):
             )
             return
 
-        # Store full outlier set (used for door re-filtering)
         self.all_outliers = raw_outliers
 
-        # Filter to the currently selected door
         door_key = self._selected_door_key()
         if door_key:
             raw_outliers = [r for r in raw_outliers if r['door_location'] == door_key]
@@ -761,7 +732,6 @@ class intro_form(QMainWindow):
     # -----------------------------------------------------------------------
 
     def init_vehicle_plots(self):
-        """Query outliers for the selected make/model/year and display them."""
         make = self.make_combo.currentText()
         model = self.model_combo.currentText()
         year = self.year_combo.currentText()
@@ -780,7 +750,6 @@ class intro_form(QMainWindow):
         self._apply_query_results(raw_outliers, f'{make} {model} {year}')
 
     def init_vin_plots(self):
-        """Query outliers for the entered VIN and display them."""
         vin = self.edit_vin.text().strip()
         if not vin:
             self.statusBar().showMessage(self.locale['EZ_STATUS_ENTER_VIN'])

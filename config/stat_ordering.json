@@ -1,0 +1,41 @@
+{
+  "default_order": "alphabetical",
+  "branches": [
+    {
+      "match": [
+        "Hinge Bind (Sampled)",
+        "Striker Alignment (Sampled)",
+        "Closing Energy from First Position (Sampled)"
+      ],
+      "order": [
+        "Striker Alignment (Sampled)",
+        "Hinge Bind (Sampled)",
+        "Closing Energy from First Position (Sampled)"
+      ]
+    },
+    {
+      "match": [
+        "Closing Energy from First Position (Sampled)",
+        "Closing Energy from Full Open (Sampled)",
+        "Door Check Performance No Cabin (Sampled)",
+        "Hinge and Doorcheck Performance (Sampled)",
+        "Hinge Bind (Sampled)",
+        "Hinge Inclination (Sampled)",
+        "Seal Dynamics (Sampled)",
+        "Static Closing Force (Sampled)",
+        "Striker Alignment (Sampled)"
+      ],
+      "order": [
+        "Striker Alignment (Sampled)",
+        "Hinge Inclination (Sampled)",
+        "Hinge Bind (Sampled)",
+        "Hinge and Doorcheck Performance (Sampled)",
+        "Door Check Performance No Cabin (Sampled)",
+        "Seal Dynamics (Sampled)",
+        "Static Closing Force (Sampled)",
+        "Closing Energy from First Position (Sampled)",
+        "Closing Energy from Full Open (Sampled)"
+      ]
+    }
+  ]
+}

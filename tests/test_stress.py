@@ -108,11 +108,9 @@ class TestPyqtGraphStress:
             assert form.current_stat == idx + 1
 
             items = form.plot.getPlotItem().items
-            # family scatter + highlight point + 2 tolerance lines = at least 4
-            assert len(items) >= 4, f"idx={idx} items={len(items)}"
-
-            # graph_info should not be empty
-            assert form.graph_info.toPlainText().strip() != ''
+            # family scatter + highlight point + 2 tolerance lines
+            # + annotation + connecting line = at least 6
+            assert len(items) >= 6, f"idx={idx} items={len(items)}"
 
         assert form.current_stat == 999
         assert form.button_next.isEnabled() is False
@@ -168,7 +166,7 @@ class TestPyqtGraphStress:
                 qtbot.wait(10)
 
             items = form.plot.getPlotItem().items
-            assert len(items) >= 4
+            assert len(items) >= 6
 
     @patch('src.main.fetch_stat_family')
     @patch('src.main.vin_query')
@@ -187,7 +185,6 @@ class TestPyqtGraphStress:
         qtbot.wait(50)
 
         assert len(form.plot.getPlotItem().items) == 0
-        assert form.graph_info.toPlainText().strip() == ''
 
 
 # ===========================================================================
@@ -305,47 +302,6 @@ class TestDoorAvailability:
 
 
 # ===========================================================================
-# 4. Graph info content
-# ===========================================================================
-
-class TestGraphInfo:
-    """Verify the graph info HTML panel displays correct stat details."""
-
-    def test_graph_info_shows_vehicle(self, form, qtbot):
-        tc = test_case('gap', 10.0, 'mm', 2.0, 3.5, 5.0, 'mm', 'VIN_ABC', 'driver_front')
-        form._update_graph_info(tc)
-        text = form.graph_info.toPlainText()
-        assert 'VIN_ABC' in text
-
-    def test_graph_info_shows_tolerance(self, form, qtbot):
-        tc = test_case('gap', 10.0, 'mm', 2.0, 3.5, 5.0, 'mm', 'V', 'df')
-        form._update_graph_info(tc)
-        text = form.graph_info.toPlainText()
-        assert '2.0' in text and '5.0' in text
-
-    def test_graph_info_out_of_tolerance_yes(self, form, qtbot):
-        tc = test_case('gap', 10.0, 'mm', 2.0, 10.0, 5.0, 'mm', 'V', 'df')
-        assert tc.out_of_tolerance is True
-        form._update_graph_info(tc)
-        text = form.graph_info.toPlainText()
-        assert 'YES' in text
-
-    def test_graph_info_out_of_tolerance_no(self, form, qtbot):
-        tc = test_case('gap', 10.0, 'mm', 2.0, 3.5, 5.0, 'mm', 'V', 'df')
-        assert tc.out_of_tolerance is False
-        form._update_graph_info(tc)
-        text = form.graph_info.toPlainText()
-        assert 'YES' not in text
-
-    def test_clear_empties_graph_info(self, form, qtbot):
-        tc = test_case('gap', 10.0, 'mm', 2.0, 3.5, 5.0, 'mm', 'V', 'df')
-        form._update_graph_info(tc)
-        assert form.graph_info.toPlainText().strip() != ''
-        form._clear_plot()
-        assert form.graph_info.toPlainText().strip() == ''
-
-
-# ===========================================================================
 # 5. Edge cases: single outlier, boundary values, extreme coords
 # ===========================================================================
 
@@ -367,8 +323,8 @@ class TestEdgeCases:
         assert form.current_stat == 0
 
         items = form.plot.getPlotItem().items
-        # highlight + 2 tolerance lines (no family)
-        assert len(items) >= 3
+        # highlight + 2 tolerance lines + annotation + line (no family)
+        assert len(items) >= 5
 
     @patch('src.main.fetch_stat_family')
     @patch('src.main.vin_query')
@@ -404,7 +360,7 @@ class TestEdgeCases:
         form.init_vin_plots()
 
         items = form.plot.getPlotItem().items
-        assert len(items) >= 4
+        assert len(items) >= 6
 
     @patch('src.main.fetch_stat_family')
     @patch('src.main.vin_query')
@@ -416,7 +372,7 @@ class TestEdgeCases:
         form.init_vin_plots()
 
         items = form.plot.getPlotItem().items
-        assert len(items) >= 4
+        assert len(items) >= 6
 
     @patch('src.main.fetch_stat_family')
     @patch('src.main.vin_query')
@@ -627,8 +583,8 @@ class TestPlotSelectionComponents:
         form.init_vin_plots()
 
         items = form.plot.getPlotItem().items
-        # family scatter + highlight + 2 tolerance lines = 4
-        assert len(items) == 4
+        # family scatter + highlight + 2 tolerance lines + annotation + line = 6
+        assert len(items) == 6
 
     @patch('src.main.fetch_stat_family')
     @patch('src.main.vin_query')
@@ -639,8 +595,8 @@ class TestPlotSelectionComponents:
         form.init_vin_plots()
 
         items = form.plot.getPlotItem().items
-        # highlight + 2 tolerance lines = 3
-        assert len(items) == 3
+        # highlight + 2 tolerance lines + annotation + line = 5
+        assert len(items) == 5
 
     @patch('src.main.fetch_stat_family')
     @patch('src.main.vin_query')

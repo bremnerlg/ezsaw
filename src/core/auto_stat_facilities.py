@@ -6,6 +6,7 @@ vehicle lookups, and stat family data. All queries use parameterized
 inputs and quoted identifiers for safety.
 """
 
+import os
 import psycopg
 import json
 import numpy as np
@@ -33,14 +34,19 @@ PGDB_CONFIG = load_db_config()
 
 
 def ezsaw_default_connect(config=None):
-    """Open a new psycopg connection using the given (or default) config."""
+    """Open a new psycopg connection using the given (or default) config.
+
+    DB credentials are resolved in order of precedence:
+      1. Environment variables (EZ_PG_DB, EZ_PG_USER, EZ_PG_PASS, EZ_PG_HOST)
+      2. Config file values
+    """
     if config is None:
         config = PGDB_CONFIG
     return psycopg.connect(
-        dbname=config['EZ_PG_DB'],
-        user=config['EZ_PG_USER'],
-        password=config['EZ_PG_PASS'],
-        host=config['EZ_PG_HOST']
+        dbname=os.environ.get('EZ_PG_DB') or config['EZ_PG_DB'],
+        user=os.environ.get('EZ_PG_USER') or config['EZ_PG_USER'],
+        password=os.environ.get('EZ_PG_PASS') or config['EZ_PG_PASS'],
+        host=os.environ.get('EZ_PG_HOST') or config['EZ_PG_HOST']
     )
 
 
@@ -316,8 +322,55 @@ def fetch_years(make, model, config=None):
 
 
 # ---------------------------------------------------------------------------
-# Result processing
+# Stat ordering (JSON-driven traversal)
 # ---------------------------------------------------------------------------
+
+_STAT_ORDERING_PATH = Path(__file__).resolve().parent.parent.parent / 'config' / 'stat_ordering.json'
+
+
+def load_stat_ordering():
+    """Load the stat_ordering.json config. Returns default structure if
+    the file is missing or corrupt."""
+    try:
+        with open(_STAT_ORDERING_PATH) as f:
+            return json.load(f)
+    except (json.JSONDecodeError, OSError):
+        return {'default_order': 'alphabetical', 'branches': []}
+
+
+def apply_stat_ordering(stats):
+    """Reorder a list of test_case objects according to stat_ordering.json.
+
+    For each branch rule, if the set of stat names in the current selection
+    is a superset of the branch's match list, the stats are reordered to
+    match the branch's order. Unknown names are appended at the end in
+    alphabetical order. Falls back to alphabetical if no branch matches.
+    """
+    if not stats:
+        return stats
+
+    ordering = load_stat_ordering()
+    stat_names = [s.name for s in stats]
+    name_set = set(stat_names)
+
+    # Try to find a matching branch
+    for branch in ordering.get('branches', []):
+        match_set = set(branch['match'])
+        if match_set.issubset(name_set):
+            ordered = []
+            remaining = {s.name for s in stats}
+            for name in branch['order']:
+                if name in remaining:
+                    ordered.extend(s for s in stats if s.name == name)
+                    remaining.discard(name)
+            # Append any names not in the branch order, sorted alphabetically
+            for name in sorted(remaining):
+                ordered.extend(s for s in stats if s.name == name)
+            return ordered
+
+    # Default: alphabetical by name
+    return sorted(stats, key=lambda s: s.name)
+
 
 def init_test_case(row):
     """Convert a raw query result dict into a test_case instance."""

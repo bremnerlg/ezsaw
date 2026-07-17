@@ -179,8 +179,9 @@ class TestPlotting:
         form.init_vin_plots()
 
         # Expect: family scatter + highlight point + 2 tolerance lines
+        # + annotation + connecting line = at least 5
         plot_items = form.plot.getPlotItem().items
-        assert len(plot_items) >= 3
+        assert len(plot_items) >= 5
 
     def test_clear_plot_removes_items(self, form, qtbot):
         form.plot.plot([1, 2], [3, 4])
