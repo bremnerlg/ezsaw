@@ -306,54 +306,64 @@ class intro_form(QMainWindow):
         controls = QHBoxLayout()
         controls.setSpacing(10)
 
+        # Left column: VIN input with button below
+        vin_col = QVBoxLayout()
+        vin_col.setSpacing(6)
         self.edit_vin = QLineEdit()
         self.edit_vin.setPlaceholderText(self.locale['EZ_VIN_PLACEHOLDER'])
         self.edit_vin.setMinimumWidth(160)
         self.edit_vin.setMaximumWidth(240)
         self.edit_vin.returnPressed.connect(self.init_vin_plots)
-        controls.addWidget(self.edit_vin)
-
+        vin_col.addWidget(self.edit_vin)
         self.button_vin_query = QPushButton(self.locale['EZ_BTN_QUERY'])
         self.button_vin_query.clicked.connect(self.init_vin_plots)
-        controls.addWidget(self.button_vin_query)
+        vin_col.addWidget(self.button_vin_query)
+        vin_col.addStretch()
+        controls.addLayout(vin_col)
 
         controls.addSpacing(12)
 
+        # Middle column: vehicle dropdowns with Enter button below
+        vehicle_col = QVBoxLayout()
+        vehicle_col.setSpacing(6)
+        vehicle_row = QHBoxLayout()
+        vehicle_row.setSpacing(6)
         vehicle_label = QLabel(self.locale['EZ_LABEL_VEHICLE'])
         vehicle_label.setStyleSheet(
             f'color: {TEXT_DIM}; font-size: 12px; font-weight: 500;'
         )
-        controls.addWidget(vehicle_label)
-
+        vehicle_row.addWidget(vehicle_label)
         self.make_combo = QComboBox()
         self.make_combo.setFixedWidth(120)
         self.make_combo.setPlaceholderText(self.locale['EZ_LABEL_MAKE'])
-        controls.addWidget(self.make_combo)
-
+        vehicle_row.addWidget(self.make_combo)
         self.model_combo = QComboBox()
         self.model_combo.setFixedWidth(120)
         self.model_combo.setPlaceholderText(self.locale['EZ_LABEL_MODEL'])
         self.model_combo.setEnabled(False)
-        controls.addWidget(self.model_combo)
-
+        vehicle_row.addWidget(self.model_combo)
         self.year_combo = QComboBox()
         self.year_combo.setFixedWidth(80)
         self.year_combo.setPlaceholderText(self.locale['EZ_LABEL_YEAR'])
         self.year_combo.setEnabled(False)
-        controls.addWidget(self.year_combo)
-
+        vehicle_row.addWidget(self.year_combo)
+        vehicle_col.addLayout(vehicle_row)
         self.button_enter = QPushButton(self.locale['EZ_BTN_ENTER'])
         self.button_enter.clicked.connect(self.init_vehicle_plots)
-        controls.addWidget(self.button_enter)
+        vehicle_col.addWidget(self.button_enter)
+        vehicle_col.addStretch()
+        controls.addLayout(vehicle_col)
 
         controls.addSpacing(12)
 
+        # Right column: door list
+        door_col = QVBoxLayout()
+        door_col.setSpacing(6)
         door_label = QLabel(self.locale['EZ_LABEL_DOOR'])
         door_label.setStyleSheet(
             f'color: {TEXT_DIM}; font-size: 12px; font-weight: 500;'
         )
-        controls.addWidget(door_label)
-
+        door_col.addWidget(door_label)
         self.door_location_widget = QListWidget()
         self.door_location_widget.setMinimumWidth(130)
         self.door_location_widget.setMaximumWidth(170)
@@ -361,7 +371,8 @@ class intro_form(QMainWindow):
         for label, _ in DOOR_LOCATIONS:
             self.door_location_widget.addItem(label)
         self.door_location_widget.setCurrentRow(0)
-        controls.addWidget(self.door_location_widget)
+        door_col.addWidget(self.door_location_widget)
+        controls.addLayout(door_col)
 
         controls.addStretch()
 
