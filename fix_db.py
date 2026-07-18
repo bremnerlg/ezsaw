@@ -1,11 +1,17 @@
 #!/usr/bin/env python3
-"""Comprehensive fixer for auto door test data.
+"""Regenerate auto door test data with correct ordering and door assignments.
 
-Fixes:
-1. Stat ID ordering to match stat_ordering.json
-2. SUV missing passenger doors (driver_front/rear, passenger_front/rear)
-3. Hatchback missing rear_hatch
-4. Generates corrected SQL files for all locales
+This script does NOT connect to a database. It reads existing locale SQL files,
+extracts vehicle data, regenerates all stat and step rows with the correct
+ordering and door assignments, then writes updated INSERT blocks back.
+
+Achieves:
+1. Stat ID ordering matches stat_ordering.json
+2. SUV gets all four passenger doors (driver_front/rear, passenger_front/rear)
+3. Hatchback gets rear_hatch
+4. All locale SQL files get fresh, consistent data
+
+Run this before export_fixed.py when schema or ordering changes.
 """
 
 import re
@@ -27,18 +33,6 @@ STAT_ORDERING = [
     "Closing Energy from Full Open (Sampled)",
 ]
 
-# Current order in the data (within each 9-block)
-CURRENT_ORDER = [
-    "Striker Alignment (Sampled)",
-    "Hinge and Doorcheck Performance (Sampled)",
-    "Closing Energy from First Position (Sampled)",
-    "Closing Energy from Full Open (Sampled)",
-    "Hinge Inclination (Sampled)",
-    "Hinge Bind (Sampled)",
-    "Door Check Performance No Cabin (Sampled)",
-    "Static Closing Force (Sampled)",
-    "Seal Dynamics (Sampled)",
-]
 
 # Per-test-type data profiles (sampled, two_var, x_unit, y_unit)
 TEST_PROFILES = {
@@ -115,16 +109,14 @@ STEPS_COLUMNS = {
 }
 
 
+# ---------------------------------------------------------------------------
+# Vehicle Data Loading
+# ---------------------------------------------------------------------------
+
 def load_vehicle_data(sql_file):
     """Parse vehicles from a locale SQL file."""
     with open(sql_file) as f:
         content = f.read()
-
-    # Find the vehicles INSERT
-    for loc, spec in LOCALE_COLUMNS.items():
-        if spec["table"] != "auto_door_stats" and spec["table"] != "statistiken_tueren_fahrzeuge":
-            # Find this locale's vehicle table name
-            continue
 
     # Generic approach: find INSERT INTO * that has VIN-like values
     pattern = r"INSERT INTO\s+\w+\s*\([^)]+\)\s*VALUES\s*\n((?:\s*\([^;]*?\)\s*,?\s*\n?)+)\s*;"
@@ -153,28 +145,9 @@ def load_vehicle_data(sql_file):
     return vehicles
 
 
-def load_existing_stats(sql_file, table_name):
-    """Parse stats from a locale SQL file."""
-    with open(sql_file) as f:
-        content = f.read()
-
-    pattern = re.compile(
-        r'INSERT INTO\s+' + re.escape(table_name) + r'\s*\([^)]+\)\s*VALUES\s*\n((?:\s*\([^;]*?\)\s*,?\s*\n?)+)\s*;',
-        re.DOTALL | re.IGNORECASE
-    )
-    match = pattern.search(content)
-    if not match:
-        return None
-
-    vals_block = match.group(1)
-    rows = parse_sql_rows(vals_block)
-    stats = []
-    for row in rows:
-        parts = parse_csv_row(row)
-        if len(parts) >= 10:
-            stats.append(parts)
-    return stats
-
+# ---------------------------------------------------------------------------
+# SQL Formatting Utilities
+# ---------------------------------------------------------------------------
 
 def parse_sql_rows(vals_block):
     """Parse rows from SQL VALUES block, handling quoted strings."""
@@ -246,6 +219,10 @@ def format_row(parts):
     formatted = ", ".join(format_sql_value(p) for p in parts)
     return f"({formatted})"
 
+
+# ---------------------------------------------------------------------------
+# Data Generation
+# ---------------------------------------------------------------------------
 
 def compute_stat_values(stat_name, is_two_var, block_number):
     """Generate realistic automotive door test values for a stat."""
@@ -367,6 +344,10 @@ def generate_steps(stats, locale, vehicles):
     return steps
 
 
+# ---------------------------------------------------------------------------
+# SQL File Assembly
+# ---------------------------------------------------------------------------
+
 def build_sql_file(filepath, locale, locale_sql_file):
     """Build a complete SQL file for a locale."""
     # Read the original locale SQL file to get the full structure
@@ -408,26 +389,30 @@ def build_sql_file(filepath, locale, locale_sql_file):
 
     steps_insert = f"INSERT INTO {DOOR_LOCALE_MAP[locale]} ({step_col_list})\nVALUES\n" + "\n".join(step_lines) + ";"
 
-    # Now replace the INSERT blocks in the original content
-    # Find and replace stats INSERT
-    pattern = re.compile(
+    # Replace the existing INSERT blocks with freshly generated ones
+    # Replace stats INSERT
+    stats_pattern = re.compile(
         r'INSERT INTO\s+' + re.escape(loc['table']) + r'\s*\([^)]+\)\s*VALUES\s*\n((?:\s*\([^;]*?\)\s*,?\s*\n?)+)\s*;',
         re.DOTALL | re.IGNORECASE
     )
-    content = pattern.sub(stats_insert, content)
+    content = stats_pattern.sub(stats_insert, content)
 
-    # Find and replace steps INSERT
-    pattern2 = re.compile(
+    # Replace steps INSERT
+    steps_pattern = re.compile(
         r'INSERT INTO\s+' + re.escape(DOOR_LOCALE_MAP[locale]) + r'\s*\([^)]+\)\s*VALUES\s*\n((?:\s*\([^;]*?\)\s*,?\s*\n?)+)\s*;',
         re.DOTALL | re.IGNORECASE
     )
-    content = pattern2.sub(steps_insert, content)
+    content = steps_pattern.sub(steps_insert, content)
 
     with open(filepath, "w") as f:
         f.write(content)
 
     return len(stats), len(steps)
 
+
+# ---------------------------------------------------------------------------
+# Main Entry Point
+# ---------------------------------------------------------------------------
 
 def main():
     print("=" * 60)

@@ -1,5 +1,14 @@
 #!/usr/bin/env python3
-"""Export fixed English DB data, replacing INSERT blocks in all locale SQL files."""
+"""Export fixed English DB data to all locale SQL files.
+
+Connects to the ezsaw3 database (which should already have been fixed by
+fix_db.py or manual corrections), reads vehicle/stat/step data, and writes
+fresh INSERT blocks into all 5 locale SQL files (en, de, fr, es, nl) and
+insert_steps.sql.
+
+Run this AFTER fix_db.py has regenerated the data files, or after making
+direct corrections to the ezsaw3 database.
+"""
 
 import re
 import decimal
@@ -60,17 +69,9 @@ DOOR_TRANSLATION = {
     "hood": {"en": "hood", "de": "haube", "fr": "capot", "es": "capó", "nl": "motorkap"},
 }
 
-EN_BODY_MAP = {
-    "sedan": "sedan", "coupe": "coupe", "SUV": "SUV", "pickup": "pickup", "hatchback": "hatchback",
-}
-
-BODY_TRANSLATION = {
-    "en": {"sedan": "sedan", "coupe": "coupe", "SUV": "SUV", "pickup": "pickup", "hatchback": "hatchback"},
-    "de": {"sedan": "sedan", "coupe": "coupe", "SUV": "SUV", "pickup": "pickup", "hatchback": "hatchback"},
-    "fr": {"sedan": "sedan", "coupe": "coupe", "SUV": "SUV", "pickup": "pickup", "hatchback": "hatchback"},
-    "es": {"sedan": "sedan", "coupe": "coupe", "SUV": "SUV", "pickup": "pickup", "hatchback": "hatchback"},
-    "nl": {"sedan": "sedan", "coupe": "coupe", "SUV": "SUV", "pickup": "pickup", "hatchback": "hatchback"},
-}
+# ---------------------------------------------------------------------------
+# Database
+# ---------------------------------------------------------------------------
 
 def connect():
     return psycopg2.connect(**DB_CONFIG)
@@ -79,7 +80,12 @@ def fetch_all(cur, query):
     cur.execute(query)
     return cur.fetchall()
 
-def fmt(val):
+
+# ---------------------------------------------------------------------------
+# SQL Utilities
+# ---------------------------------------------------------------------------
+
+def format_sql_value(val):
     if val is None:
         return "NULL"
     if isinstance(val, bool):
@@ -102,7 +108,7 @@ def make_insert_block(rows, cols, table, translate_fn=None):
     for i, row in enumerate(rows):
         if translate_fn:
             row = translate_fn(row)
-        vals = [fmt(v) for v in row]
+        vals = [format_sql_value(v) for v in row]
         suffix = "," if i < len(rows) - 1 else ";"
         lines.append(f"({', '.join(vals)}){suffix}")
     return "\n".join(lines)
@@ -148,6 +154,10 @@ def replace_insert_block(content, table_name, new_block):
     return content[:match.start()] + new_block + content[match.end():]
 
 
+# ---------------------------------------------------------------------------
+# Locale Processing
+# ---------------------------------------------------------------------------
+
 def process_locale(conn, locale, filepath, is_steps=False):
     """Process one locale SQL file."""
     print(f"\n{locale}: {filepath}")
@@ -177,10 +187,7 @@ def process_locale(conn, locale, filepath, is_steps=False):
     }
     locale_v_cols = v_trans[locale]
 
-    def translate_vehicle(row):
-        vin, make, model, body, mfg_date = row
-        return (vin, make, model, body, mfg_date)  # Same data, translated cols
-
+    # Vehicle data is locale-independent — only column names differ
     v_block = make_insert_block(vehicles, locale_v_cols, v_table)
     old_content = content
     content = replace_insert_block(content, v_table, v_block)
@@ -194,9 +201,9 @@ def process_locale(conn, locale, filepath, is_steps=False):
     print(f"  Vehicles: {len(vehicles)}")
 
     # Stats
-    s_cfg = LOCALE_COLUMNS[locale]
-    s_block = make_insert_block(stats, s_cfg["cols"], s_cfg["table"])
-    content = replace_insert_block(content, s_cfg["table"], s_block)
+    stat_config = LOCALE_COLUMNS[locale]
+    stat_block = make_insert_block(stats, stat_config["cols"], stat_config["table"])
+    content = replace_insert_block(content, stat_config["table"], stat_block)
     print(f"  Stats: {len(stats)}")
 
     # Steps
@@ -224,13 +231,17 @@ def process_locale(conn, locale, filepath, is_steps=False):
             steps_content = f.read()
 
         # Replace just the auto_door_stats INSERT
-        steps_content = replace_insert_block(steps_content, s_cfg["table"], s_block)
+        steps_content = replace_insert_block(steps_content, stat_config["table"], stat_block)
         steps_content = replace_insert_block(steps_content, st_table, st_block)
 
         with open(steps_path, "w") as f:
             f.write(steps_content)
         print(f"  Steps file: {steps_path} written")
 
+
+# ---------------------------------------------------------------------------
+# Main Entry Point
+# ---------------------------------------------------------------------------
 
 def main():
     conn = connect()
