@@ -6,11 +6,12 @@ vehicle lookups, and stat family data. All queries use parameterized
 inputs and quoted identifiers for safety.
 """
 
-import os
 import atexit
 import json
-import numpy as np
+import os
 from pathlib import Path
+
+import numpy as np
 
 try:
     import psycopg
@@ -60,15 +61,15 @@ def _get_pool():
     """
     global _POOL
     if _POOL is None and HAS_PSYCOPG_POOL:
-        cfg = PGDB_CONFIG
+        config = PGDB_CONFIG
         try:
             _POOL = ConnectionPool(
                 conninfo=(
-                    f"dbname={os.environ.get('EZ_PG_DB') or cfg['EZ_PG_DB']} "
-                    f"user={os.environ.get('EZ_PG_USER') or cfg['EZ_PG_USER']} "
-                    f"password={os.environ.get('EZ_PG_PASS') or cfg['EZ_PG_PASS']} "
-                    f"host={os.environ.get('EZ_PG_HOST') or cfg['EZ_PG_HOST']} "
-                    f"port={os.environ.get('EZ_PG_PORT') or cfg.get('EZ_PG_PORT', 5432)}"
+                    f"dbname={os.environ.get('EZ_PG_DB') or config['EZ_PG_DB']} "
+                    f"user={os.environ.get('EZ_PG_USER') or config['EZ_PG_USER']} "
+                    f"password={os.environ.get('EZ_PG_PASS') or config['EZ_PG_PASS']} "
+                    f"host={os.environ.get('EZ_PG_HOST') or config['EZ_PG_HOST']} "
+                    f"port={os.environ.get('EZ_PG_PORT') or config.get('EZ_PG_PORT', 5432)}"
                 ),
                 min_size=1,
                 max_size=4,
@@ -140,6 +141,64 @@ class test_case:
 
 
 # ---------------------------------------------------------------------------
+# Constructors / conversion
+# ---------------------------------------------------------------------------
+
+def init_test_case(row):
+    """Convert a raw query result dict into a test_case instance."""
+    return test_case(
+        row['test_name'],
+        row['result_x'],
+        row['result_x_unit'],
+        row['result_y_lower_lim'],
+        row['result_y'],
+        row['result_y_upper_lim'],
+        row['result_y_unit'],
+        row['vin'],
+        row['door_location']
+    )
+
+
+def init_test_case_list(raw_entries):
+    """Convert a list of raw query result dicts into test_case instances."""
+    return [init_test_case(entry) for entry in raw_entries]
+
+
+def matricize_test_cases(stats):
+    """Convert a list of test_case objects into a (2, n) numpy matrix
+    of [result_x, result_y] values for plotting.
+
+    If the first entry has a non-empty name, only consecutive entries
+    matching that name are included. If the name is empty, all entries
+    are included.
+    """
+    if stats is None:
+        return np.zeros((2, 0))
+
+    if not stats:
+        return np.zeros((2, 0))
+
+    matrix = np.zeros((2, len(stats)))
+    target_name = stats[0].name
+    col_idx = 0
+
+    if target_name == '':
+        for stat in stats:
+            matrix[0, col_idx] = stat.result_x if stat.result_x is not None else np.nan
+            matrix[1, col_idx] = stat.result_y if stat.result_y is not None else np.nan
+            col_idx += 1
+    else:
+        for stat in stats:
+            if stat.name != target_name:
+                break
+            matrix[0, col_idx] = stat.result_x if stat.result_x is not None else np.nan
+            matrix[1, col_idx] = stat.result_y if stat.result_y is not None else np.nan
+            col_idx += 1
+
+    return matrix[:, :col_idx]
+
+
+# ---------------------------------------------------------------------------
 # SQL query builders
 # ---------------------------------------------------------------------------
 
@@ -163,7 +222,6 @@ def build_outlier_query(config):
 
     Returns rows where the dependent variable (y) is outside tolerance bounds.
     """
-    # Quote all column/table names from config
     joint = _quote_identifier(config['EZ_JOINT_TABLE_NAME'])
     stat = _quote_identifier(config['EZ_STAT_TABLE_NAME'])
     fk = _quote_identifier(config['EZ_JOINT_TABLE_STAT_FK'])
@@ -216,7 +274,6 @@ def build_outlier_query_by_vehicle(config):
 
     Joins the vehicles table to filter by make, model, and manufacture year.
     """
-    # Reuse the shared column aliases, then add vehicle-specific joins
     joint = _quote_identifier(config['EZ_JOINT_TABLE_NAME'])
     stat = _quote_identifier(config['EZ_STAT_TABLE_NAME'])
     fk = _quote_identifier(config['EZ_JOINT_TABLE_STAT_FK'])
@@ -431,56 +488,4 @@ def apply_stat_ordering(stats):
     return sorted(stats, key=lambda s: s.name)
 
 
-def init_test_case(row):
-    """Convert a raw query result dict into a test_case instance."""
-    return test_case(
-        row['test_name'],
-        row['result_x'],
-        row['result_x_unit'],
-        row['result_y_lower_lim'],
-        row['result_y'],
-        row['result_y_upper_lim'],
-        row['result_y_unit'],
-        row['vin'],
-        row['door_location']
-    )
 
-
-def init_test_case_list(raw_entries):
-    """Convert a list of raw query result dicts into test_case instances."""
-    return [init_test_case(entry) for entry in raw_entries]
-
-
-def matricize_test_cases(stats):
-    """Convert a list of test_case objects into a (2, n) numpy matrix
-    of [result_x, result_y] values for plotting.
-
-    If the first entry has a non-empty name, only consecutive entries
-    matching that name are included. If the name is empty, all entries
-    are included.
-    """
-    if stats is None:
-        return np.zeros((2, 0))
-
-    if not stats:
-        return np.zeros((2, 0))
-
-    matrix = np.zeros((2, len(stats)))
-    target_name = stats[0].name
-    col_idx = 0
-
-    if target_name == '':
-        for stat in stats:
-            matrix[0, col_idx] = stat.result_x if stat.result_x is not None else np.nan
-            matrix[1, col_idx] = stat.result_y if stat.result_y is not None else np.nan
-            col_idx += 1
-    else:
-        for stat in stats:
-            if stat.name != target_name:
-                break
-            matrix[0, col_idx] = stat.result_x if stat.result_x is not None else np.nan
-            matrix[1, col_idx] = stat.result_y if stat.result_y is not None else np.nan
-            col_idx += 1
-
-    # Return only the filled portion of the matrix
-    return matrix[:, :col_idx]

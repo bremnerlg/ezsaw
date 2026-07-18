@@ -87,12 +87,12 @@ def load_locale_strings(locale_code=None):
     """
     if locale_code is None:
         locale_code = get_current_locale()
-    filename = _LOCALE_FILES.get(locale_code, _LOCALE_FILES['en'])
-    filepath = _CONFIG_DIR / filename
-    if not filepath.exists():
-        filepath = _CONFIG_DIR / _LOCALE_FILES['en']
+    locale_file = _LOCALE_FILES.get(locale_code, _LOCALE_FILES['en'])
+    locale_filepath = _CONFIG_DIR / locale_file
+    if not locale_filepath.exists():
+        locale_filepath = _CONFIG_DIR / _LOCALE_FILES['en']
     try:
-        with open(filepath) as f:
+        with open(locale_filepath) as f:
             return json.load(f)
     except (json.JSONDecodeError, OSError):
         return json.loads('{}')
@@ -120,22 +120,22 @@ def load_db_config_for_locale(locale_code=None):
             except (json.JSONDecodeError, OSError):
                 pass
 
-    config = {}
+    db_config = {}
     default_path = _CONFIG_DIR / 'db_config.json'
     try:
         with open(default_path) as f:
-            config = json.load(f)
+            db_config = json.load(f)
     except (json.JSONDecodeError, OSError):
         pass
 
-    strings = load_locale_strings(locale_code)
-    db_config_file = strings.get('EZ_DB_CONFIG_FILE', 'db_config.json')
-    if db_config_file != 'db_config.json':
-        filepath = _CONFIG_DIR / db_config_file
-        if filepath.exists():
+    locale_strings = load_locale_strings(locale_code)
+    config_override_file = locale_strings.get('EZ_DB_CONFIG_FILE', 'db_config.json')
+    if config_override_file != 'db_config.json':
+        override_filepath = _CONFIG_DIR / config_override_file
+        if override_filepath.exists():
             try:
-                with open(filepath) as f:
-                    config.update(json.load(f))
+                with open(override_filepath) as f:
+                    db_config.update(json.load(f))
             except (json.JSONDecodeError, OSError):
                 pass
 
@@ -149,9 +149,9 @@ def load_db_config_for_locale(locale_code=None):
     }
     for key, val in env_overrides.items():
         if val is not None:
-            config[key] = val
+            db_config[key] = val
 
-    return config
+    return db_config
 
 
 # ---------------------------------------------------------------------------
