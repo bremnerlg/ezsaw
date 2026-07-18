@@ -72,6 +72,15 @@ class TestCaseConstruction:
         assert tc.vehicle == 'VIN2'
         assert tc.location == 'rear_hatch'
 
+    def test_vehicle_fields_stored(self):
+        tc = test_case('gap', 10.0, 'mm', 2.0, 3.5, 5.0, 'mm', 'VIN99',
+                       'driver_front', make='Honda', model='Accord',
+                       mandate='2021-03-15')
+        assert tc.make == 'Honda'
+        assert tc.model == 'Accord'
+        assert tc.mandate == '2021-03-15'
+        assert tc.vehicle == 'VIN99'
+
 
 # ===========================================================================
 # init_test_case / init_test_case_list
@@ -87,6 +96,9 @@ SAMPLE_ROW = {
     'result_y_unit': 'mm',
     'vin': 'VIN1',
     'door_location': 'driver_front',
+    'make': 'Honda',
+    'model': 'Civic',
+    'manufacture_date': '2022-03-14',
 }
 
 
@@ -98,6 +110,9 @@ class TestInitTestCase:
         assert isinstance(tc, test_case)
         assert tc.name == 'gap'
         assert tc.vehicle == 'VIN1'
+        assert tc.make == 'Honda'
+        assert tc.model == 'Civic'
+        assert tc.mandate == '2022-03-14'
 
     def test_init_test_case_list(self):
         rows = [SAMPLE_ROW, SAMPLE_ROW]
@@ -118,7 +133,8 @@ class TestMatricize:
     (2, n) numpy matrices for plotting."""
 
     def _make_tc(self, x, y, name='gap'):
-        return test_case(name, x, 'mm', 0.0, y, 100.0, 'mm', 'V', 'df')
+        return test_case(name, x, 'mm', 0.0, y, 100.0, 'mm', 'V', 'df',
+                         make='Honda', model='Civic', mandate='2022-03-14')
 
     def test_empty_input(self):
         result = matricize_test_cases([])
@@ -194,6 +210,10 @@ class TestQueryBuilders:
         assert '"auto_door_stats"."result_y" < "auto_door_stats"."result_y_lower_lim"' in q
         assert '"auto_door_stats"."result_y" > "auto_door_stats"."result_y_upper_lim"' in q
         assert '%s' in q
+        assert '"vehicles"."make"  AS make' in q
+        assert '"vehicles"."model" AS model' in q
+        assert '"vehicles"."manufacture_date" AS manufacture_date' in q
+        assert 'JOIN "vehicles" ON' in q
 
     def test_stat_family_query_filters_name_and_door(self):
         q = build_stat_family_query(self.CONFIG)
@@ -208,6 +228,9 @@ class TestQueryBuilders:
         assert '"vehicles"."model" = %s' in q
         assert 'EXTRACT(YEAR FROM "vehicles"."manufacture_date")' in q
         assert '"auto_door_stats"."result_y" < "auto_door_stats"."result_y_lower_lim"' in q
+        assert '"vehicles"."make"  AS make' in q
+        assert '"vehicles"."model" AS model' in q
+        assert '"vehicles"."manufacture_date"  AS manufacture_date' in q
 
 
 # ===========================================================================
@@ -449,7 +472,8 @@ class TestStatOrdering:
     according to stat_ordering.json branch rules."""
 
     def _make_tc(self, name, x=1.0, y=2.0):
-        return test_case(name, x, 'mm', 0.0, y, 100.0, 'mm', 'V', 'df')
+        return test_case(name, x, 'mm', 0.0, y, 100.0, 'mm', 'V', 'df',
+                         make='Honda', model='Civic', mandate='2022-03-14')
 
     def test_load_stat_ordering_returns_dict(self):
         ordering = load_stat_ordering()

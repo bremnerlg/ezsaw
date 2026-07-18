@@ -652,9 +652,21 @@ class intro_form(QMainWindow):
                 else:
                     deviation = f'{abs(stat.result_y_upper - stat.result_y):.2f} {stat.result_y_unit} above upper limit'
 
+            make_str = stat.make or ''
+            model_str = stat.model or ''
+            mandate_str = str(stat.mandate) if stat.mandate else ''
+
+            vehicle_info = f'{stat.vehicle}'
+            if make_str or model_str:
+                vehicle_info += f'  |  {make_str} {model_str}'
+            if mandate_str:
+                vehicle_info += f'  |  Man: {mandate_str}'
+
             label_text = (
                 f'<span style="color: #ff4444; font-weight: bold; font-size: 13px;">'
                 f'{translated_name}</span><br>'
+                f'<span style="color: #e0e0e0; font-size: 11px;">'
+                f'VIN: {vehicle_info}</span><br>'
                 f'<span style="color: #e0e0e0; font-size: 11px;">'
                 f'result_y: {stat.result_y} {stat.result_y_unit}</span><br>'
                 f'<span style="color: #e0e0e0; font-size: 11px;">'

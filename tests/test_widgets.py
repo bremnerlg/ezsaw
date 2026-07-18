@@ -33,7 +33,8 @@ def form(qtbot):
 
 
 def _make_raw_row(test_name='gap', x=10.0, y=3.5, y_low=2.0, y_high=5.0,
-                  vin='VIN1', door='driver_front'):
+                  vin='VIN1', door='driver_front',
+                  make='Honda', model='Civic', man_date='2022-03-14'):
     """Helper: create a mock query result row (dict matching DB schema)."""
     return {
         'test_name': test_name,
@@ -45,6 +46,9 @@ def _make_raw_row(test_name='gap', x=10.0, y=3.5, y_low=2.0, y_high=5.0,
         'result_y_unit': 'mm',
         'vin': vin,
         'door_location': door,
+        'make': make,
+        'model': model,
+        'manufacture_date': man_date,
     }
 
 

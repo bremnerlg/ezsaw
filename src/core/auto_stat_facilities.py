@@ -123,7 +123,8 @@ class test_case:
     """Represents a single door check measurement with tolerance bounds."""
 
     def __init__(self, test_name, x, x_unit,
-                 y_low, y, y_high, y_unit, vin, door_location):
+                 y_low, y, y_high, y_unit, vin, door_location,
+                 make=None, model=None, mandate=None):
         self.vehicle = vin
         self.location = door_location
         self.name = test_name
@@ -133,6 +134,9 @@ class test_case:
         self.result_y = y
         self.result_y_upper = y_high
         self.result_y_unit = y_unit
+        self.make = make
+        self.model = model
+        self.mandate = mandate
 
         self.out_of_tolerance = (
             self.result_y < self.result_y_lower
@@ -155,7 +159,10 @@ def init_test_case(row):
         row['result_y_upper_lim'],
         row['result_y_unit'],
         row['vin'],
-        row['door_location']
+        row['door_location'],
+        make=row.get('make'),
+        model=row.get('model'),
+        mandate=row.get('manufacture_date'),
     )
 
 
@@ -235,6 +242,10 @@ def build_outlier_query(config):
     y = _quote_identifier(config['EZ_STAT_DEPENDENT_VAR_FIELD'])
     y_upper = _quote_identifier(config['EZ_STAT_DEPENDENT_VAR_UPPER_LIM_FIELD'])
     y_unit = _quote_identifier(config['EZ_STAT_DEPENDENT_VAR_UNIT_FIELD'])
+    vehicles = _quote_identifier(config['EZ_VEHICLES_TABLE_NAME'])
+    make = _quote_identifier(config['EZ_VEHICLES_MAKE_FIELD'])
+    model = _quote_identifier(config['EZ_VEHICLES_MODEL_FIELD'])
+    man_date = _quote_identifier(config['EZ_VEHICLES_MAN_DATE_FIELD'])
 
     return f"""
     SELECT
@@ -246,9 +257,13 @@ def build_outlier_query(config):
         {stat}.{y}       AS result_y,
         {stat}.{y_upper} AS result_y_upper_lim,
         {stat}.{y_unit}  AS result_y_unit,
-        {joint}.{vin}    AS vin
+        {joint}.{vin}    AS vin,
+        {vehicles}.{make}  AS make,
+        {vehicles}.{model} AS model,
+        {vehicles}.{man_date} AS manufacture_date
     FROM {joint}
     JOIN {stat} ON {joint}.{fk} = {stat}.{pk}
+    JOIN {vehicles} ON {joint}.{vin} = {vehicles}.{vin}
     WHERE ({stat}.{y} < {stat}.{y_lower} OR {stat}.{y} > {stat}.{y_upper})
     AND {joint}.{vin} = %s
     """
@@ -302,7 +317,10 @@ def build_outlier_query_by_vehicle(config):
         {stat}.{y}       AS result_y,
         {stat}.{y_upper} AS result_y_upper_lim,
         {stat}.{y_unit}  AS result_y_unit,
-        {joint}.{vin}    AS vin
+        {joint}.{vin}    AS vin,
+        {vehicles}.{make}  AS make,
+        {vehicles}.{model} AS model,
+        {vehicles}.{date}  AS manufacture_date
     FROM {joint}
     JOIN {stat} ON {joint}.{fk} = {stat}.{pk}
     JOIN {vehicles} ON {joint}.{vin} = {vehicles}.{vin}

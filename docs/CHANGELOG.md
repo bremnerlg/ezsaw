@@ -4,6 +4,45 @@
 
 ---
 
+## V4.1.0 Beta
+
+### Features
+
+- **Graph vehicle information box enriched**: The pyqtgraph annotation label now displays VIN, make, model, and manufacture date (mandate) alongside the existing result, tolerance, and deviation for the plotted outlier stat. Vehicle details are fetched from the database via JOIN with the vehicles table in both VIN and vehicle-path queries.
+
+### Database / Query Layer
+
+- **`build_outlier_query`**: Added `JOIN vehicles` and `SELECT make, model, manufacture_date` so VIN-path queries return vehicle details.
+- **`build_outlier_query_by_vehicle`**: Now SELECTs `make`, `model`, and `manufacture_date` (the JOIN to vehicles already existed).
+
+### Data Model
+
+- **`test_case.__init__`**: Added optional `make`, `model`, `mandate` keyword arguments.
+- **`init_test_case`**: Passes `row.get('make')`, `row.get('model')`, and `row.get('manufacture_date')` to the `test_case` constructor.
+
+### GUI
+
+- **`plot_selection`**: Annotation label now includes a VIN line with make/model and mandate (manufacture date), formatted as `VIN: <vin>  |  <make> <model>  |  Man: <date>`.
+
+### Testing
+
+- **`test_unit.py`**: Added `test_vehicle_fields_stored` test; updated `SAMPLE_ROW`, `_make_tc` helpers, and query builder assertions to cover new columns.
+- **`test_widgets.py`**: Updated `_make_raw_row` to include `make`, `model`, `manufacture_date`.
+- **`test_stress.py`**: Updated `_raw` and `_make_tc` helpers with vehicle fields.
+
+### Files Changed
+
+| File | Change |
+|------|--------|
+| `src/core/auto_stat_facilities.py` | `test_case.__init__` + make/model/mandate params; `init_test_case` passes new fields; `build_outlier_query` JOINs vehicles + SELECTs make/model/man_date; `build_outlier_query_by_vehicle` SELECTs make/model/man_date |
+| `src/main.py` | `plot_selection` annotation enriched with VIN, make, model, mandate |
+| `tests/test_unit.py` | New `test_vehicle_fields_stored`, updated SAMPLE_ROW, _make_tc, query builder assertions |
+| `tests/test_widgets.py` | Updated `_make_raw_row` helper |
+| `tests/test_stress.py` | Updated `_raw` and `_make_tc` helpers |
+| `docs/CHANGELOG.md` | This entry |
+
+---
+
 ## V4.0.0 Beta
 
 ### Bug Fixes

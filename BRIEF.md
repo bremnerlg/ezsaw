@@ -1,7 +1,7 @@
 # EZSAW Builder Brief
 
 > **Reusable context for AI models and new contributors.**
-> Last updated: 2026-07-17 | Version: 4.0.0 Beta (Database consistency fixes applied)
+> Last updated: 2026-07-17 | Version: 4.1.0 Beta (Graph vehicle info enrichment)
 
 **IMPORTANT:** Any AI agent working on this project MUST update BRIEF.md AND CHANGELOG.md (in docs/) as it goes to avoid stale context accumulating and ensure needed context is always present. Delete sections that are no longer relevant; add new ones as discoveries are made.
 
@@ -115,7 +115,7 @@ The entire DB schema is abstracted through `config/db_config*.json`. No column n
 | File | Purpose | Notes |
 |------|---------|-------|
 | `src/main.py` | PyQt5 GUI | `intro_form` (QMainWindow), plotting, navigation, dropdowns, on-plot annotations |
-| `src/core/auto_stat_facilities.py` | DB query layer + stat ordering | `vin_query`, `vehicle_query`, `fetch_stat_family`, `test_case`, `matricize_test_cases`, `apply_stat_ordering` |
+| `src/core/auto_stat_facilities.py` | DB query layer + stat ordering | `vin_query`, `vehicle_query`, `fetch_stat_family`, `test_case` (+make/model/mandate), `matricize_test_cases`, `apply_stat_ordering` |
 | `src/core/locale.py` | Locale/config system | `load_locale_strings`, `load_db_config_for_locale`, `translate_test_name`, `get_supported_db_configs` |
 | `src/core/__init__.py` | Public API re-exports | All of the above |
 | `tests/` | Test suite | pytest with offscreen Qt rendering; DB calls mocked |
