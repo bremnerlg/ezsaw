@@ -9,7 +9,6 @@ Fixes:
 """
 
 import re
-import json
 import random
 import csv
 import io
@@ -315,7 +314,6 @@ def compute_stat_values(stat_name, is_two_var, block_number):
 
 def generate_stats(vehicles, locale):
     """Generate all stat data for a locale."""
-    loc = LOCALE_COLUMNS[locale]
     stats = []
     stat_id = 1
 
@@ -323,7 +321,6 @@ def generate_stats(vehicles, locale):
         doors = DOOR_ASSIGNMENTS[body]
         for door in doors:
             for pos, stat_name in enumerate(STAT_ORDERING):
-                _, two_var = TEST_PROFILES[stat_name][0], TEST_PROFILES[stat_name][1]
                 sampled, two_var_val, x_unit, y_unit = TEST_PROFILES[stat_name]
                 is_two_var = two_var_val
 
@@ -357,8 +354,6 @@ def generate_stats(vehicles, locale):
 
 def generate_steps(stats, locale, vehicles):
     """Generate steps linking vehicles to stats."""
-    loc_name = locale
-    local_mode = locale if locale != "en" else None
     steps = []
 
     stat_idx = 0
@@ -451,7 +446,7 @@ def main():
         print(f"  Written: {n_stats} stats, {n_steps} steps")
 
     # Also update insert_steps.sql
-    print(f"\nProcessing: db/insert_steps.sql")
+    print("\nProcessing: db/insert_steps.sql")
     n_stats, n_steps = build_sql_file("db/insert_steps.sql", "en", "db/insert_steps.sql")
     print(f"  Written: {n_stats} stats, {n_steps} steps")
 

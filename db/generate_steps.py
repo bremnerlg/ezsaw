@@ -8,6 +8,11 @@ Generate SQL INSERT statements for auto_door_stats and steps tables.
 For each vehicle-door combination, assigns 9 consecutive auto_door_stats IDs
 using sequential chunking. Adds new auto_door_stats entries as needed.
 """
+import warnings
+warnings.warn(
+    "db/generate_steps.py is deprecated — use fix_db.py or export_fixed.py instead",
+    DeprecationWarning, stacklevel=2,
+)
 
 import re
 import random

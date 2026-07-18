@@ -8,6 +8,11 @@ Generate psql insert script with interleaved stat categories.
 Every 9 consecutive stat IDs span all 9 test types,
 so each vehicle-door gets one of each type.
 """
+import warnings
+warnings.warn(
+    "db/gen_psql.py is deprecated — use fix_db.py or export_fixed.py instead",
+    DeprecationWarning, stacklevel=2,
+)
 
 import re
 import random

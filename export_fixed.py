@@ -167,7 +167,6 @@ def process_locale(conn, locale, filepath, is_steps=False):
 
     # Vehicles
     v_table = VEHICLE_TABLES[locale]
-    v_cols = ["vin", "make", "model", "body", "manufacture_date"]
     # Translate column names for locale
     v_trans = {
         "en": ["vin", "make", "model", "body", "manufacture_date"],

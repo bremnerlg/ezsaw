@@ -5,6 +5,11 @@ at the project root. Kept for reference only — do not use for new work.
 
 Fix SQL files by properly regenerating auto_door_stats and steps blocks.
 """
+import warnings
+warnings.warn(
+    "db/fix_sql.py is deprecated — use fix_db.py or export_fixed.py instead",
+    DeprecationWarning, stacklevel=2,
+)
 
 import re
 import random

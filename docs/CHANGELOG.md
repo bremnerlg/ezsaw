@@ -34,11 +34,32 @@
 - All 5 locale SQL files (`ezsaw_tables.sql`, `_de.sql`, `_es.sql`, `_fr.sql`, `_nl.sql`) have identical table structure: same 3 tables, same column names (localized), same types, same PK/FK/index definitions.
 - **Discrepancy found**: The English file (`ezsaw_tables.sql`) has 5 CHECK constraints (`ck_vin_format`, `ck_manufacture_date_not_null`, `ck_sampled_not_null`, `ck_result_x_unit_not_null`, `ck_result_y_not_null`) that are **missing** from all 4 locale SQL files. These should be added to the locale files for parity.
 
+### Static Analysis & Logic Fixes
+
+#### Pyflakes Warning Resolution
+- **`fix_db.py`**: Removed unused `import json` (line 12), unused `loc`, `two_var`, `loc_name`, `local_mode` variables (lines 318/326/360–361), fixed f-string without placeholders (line 454).
+- **`export_fixed.py`**: Removed unused `v_cols` variable (line 170).
+
+#### Logic Issues
+- **`src/core/auto_stat_facilities.py`**:
+  - `_return_conn`: Fixed infinite recursion bug — `elif` branch called `_return_conn(conn)` instead of `conn.close()` (line 88).
+  - `matricize_test_cases`: Added `None` guard for stats input (returns empty matrix). Added NaN handling for `None` result_x/result_y values (lines 474–475, 481–482).
+- **`src/core/locale.py`**: `load_db_config_for_locale` now properly merges locale-specific config on top of default `db_config.json`, so locale files only need to specify overrides.
+
+#### Deprecated Scripts
+- **`db/fix_sql.py`**, **`db/gen_psql.py`**, **`db/generate_steps.py`**, **`db/insert_data.py`**: Added runtime `DeprecationWarning` via `warnings.warn()` at module level.
+
 ### Files Changed
 | File | Change |
 |------|--------|
-| `src/core/auto_stat_facilities.py` | Connection pool, env var port, `_return_conn` helper |
-| `src/core/locale.py` | Env var overrides in `load_db_config_for_locale` |
+| `src/core/auto_stat_facilities.py` | Connection pool, env var port, `_return_conn` helper, NaN guards, recursion fix |
+| `src/core/locale.py` | Env var overrides, merge default + locale db_config |
+| `fix_db.py` | Removed unused imports/variables, fixed f-string |
+| `export_fixed.py` | Removed unused `v_cols` variable |
+| `db/fix_sql.py` | Added runtime DeprecationWarning |
+| `db/gen_psql.py` | Added runtime DeprecationWarning |
+| `db/generate_steps.py` | Added runtime DeprecationWarning |
+| `db/insert_data.py` | Added runtime DeprecationWarning |
 | `config/db_config.json` | Added `_note` about reserved keys |
 | `config/db_config_de.json` | Added `_note` about reserved keys |
 | `config/db_config_es.json` | Added `_note` about reserved keys |

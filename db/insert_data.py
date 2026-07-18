@@ -8,6 +8,11 @@ Insert new auto_door_stats and steps data into SQL locale files.
 Uses interleaved stat categories so every 9 consecutive IDs
 span all 9 test types.
 """
+import warnings
+warnings.warn(
+    "db/insert_data.py is deprecated — use fix_db.py or export_fixed.py instead",
+    DeprecationWarning, stacklevel=2,
+)
 
 import re
 import random
