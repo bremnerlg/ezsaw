@@ -37,5 +37,6 @@
   "EZ_PG_DB": "ezsaw3",
   "EZ_PG_USER": "postgres",
   "EZ_PG_PASS": "postgres",
-  "EZ_PG_HOST": "localhost"
+   "EZ_PG_HOST": "localhost",
+   "EZ_PG_PORT": "5432"
 }

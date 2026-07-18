@@ -10,12 +10,12 @@
   "EZ_STAT_TABLE_PK": "id_stat_porte_auto",
   "EZ_STAT_NAME_FIELD": "nom_stat_porte_auto",
   "EZ_STAT_SAMPLED_FIELD": "échantillonné",
-  "EZ_STAT_TWO_VAR_FIELD": "deux_variablés",
+   "EZ_STAT_TWO_VAR_FIELD": "deux_variables",
   "EZ_STAT_INDEPENDENT_VAR_FIELD": "résultat_x",
   "EZ_STAT_INDEPENDENT_VAR_UNIT_FIELD": "unité_résultat_x",
-  "EZ_STAT_DEPENDENT_VAR_LOWER_LIM_FIELD": "limite_infèreure_résultat_y",
+   "EZ_STAT_DEPENDENT_VAR_LOWER_LIM_FIELD": "limite_inférieure_résultat_y",
   "EZ_STAT_DEPENDENT_VAR_FIELD": "résultat_y",
-  "EZ_STAT_DEPENDENT_VAR_UPPER_LIM_FIELD": "limite_suptère_résultat_y",
+   "EZ_STAT_DEPENDENT_VAR_UPPER_LIM_FIELD": "limite_supérieure_résultat_y",
   "EZ_STAT_DEPENDENT_VAR_UNIT_FIELD": "unité_résultat_y",
   "EZ_JOINT_TABLE_NAME": "étapes",
   "EZ_JOINT_TABLE_STAT_FK": "fk_étape_stat_porte_auto",
@@ -37,5 +37,6 @@
   "EZ_PG_DB": "ezsaw_fr",
   "EZ_PG_USER": "postgres",
   "EZ_PG_PASS": "postgres",
-  "EZ_PG_HOST": "localhost"
+   "EZ_PG_HOST": "localhost",
+   "EZ_PG_PORT": "5432"
 }

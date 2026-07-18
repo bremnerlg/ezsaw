@@ -5,7 +5,7 @@
   "EZ_VEHICLES_MAKE_FIELD": "merk",
   "EZ_VEHICLES_MODEL_FIELD": "model",
   "EZ_VEHICLES_BODY_TYPE_FIELD": "carrosserietype",
-  "EZ_VEHICLES_MAN_DATE_FIELD": "fabriekdatum",
+   "EZ_VEHICLES_MAN_DATE_FIELD": "fabrieksdatum",
   "EZ_STAT_TABLE_NAME": "statistieken_deuren_voertuigen",
   "EZ_STAT_TABLE_PK": "id_stat_deur_voertuig",
   "EZ_STAT_NAME_FIELD": "naam_stat_deur_voertuig",
@@ -37,5 +37,6 @@
   "EZ_PG_DB": "ezsaw_nl",
   "EZ_PG_USER": "postgres",
   "EZ_PG_PASS": "postgres",
-  "EZ_PG_HOST": "localhost"
+   "EZ_PG_HOST": "localhost",
+   "EZ_PG_PORT": "5432"
 }
