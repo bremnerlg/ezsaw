@@ -101,7 +101,7 @@ class TestPyqtGraphStress:
         form.init_vin_plots()
         qtbot.wait(100)
 
-        assert len(form.stats_selection) == 1000
+        assert len(form.test_cases) == 1000
         assert form.current_stat == 0
         assert form.button_next.isEnabled() is True
         assert form.button_prev.isEnabled() is False
@@ -160,7 +160,7 @@ class TestPyqtGraphStress:
         form.init_vehicle_plots()
         qtbot.wait(100)
 
-        assert len(form.stats_selection) == 1000
+        assert len(form.test_cases) == 1000
 
         # Sample every 10th to verify plot doesn't crash
         for idx in range(0, 1000, 10):
@@ -321,7 +321,7 @@ class TestEdgeCases:
         form.edit_vin.setText('SINGLE')
         form.init_vin_plots()
 
-        assert len(form.stats_selection) == 1
+        assert len(form.test_cases) == 1
         assert form.button_next.isEnabled() is False
         assert form.button_prev.isEnabled() is False
         assert form.current_stat == 0
@@ -339,7 +339,7 @@ class TestEdgeCases:
         form.edit_vin.setText('BOUND')
         form.init_vin_plots()
 
-        tc = form.stats_selection[0]
+        tc = form.test_cases[0]
         assert tc.out_of_tolerance is False
 
     @patch('src.main.fetch_stat_family')
@@ -351,7 +351,7 @@ class TestEdgeCases:
         form.edit_vin.setText('BOUND')
         form.init_vin_plots()
 
-        tc = form.stats_selection[0]
+        tc = form.test_cases[0]
         assert tc.out_of_tolerance is False
 
     @patch('src.main.fetch_stat_family')
@@ -387,7 +387,7 @@ class TestEdgeCases:
         form.edit_vin.setText('ZERO')
         form.init_vin_plots()
 
-        assert len(form.stats_selection) == 1
+        assert len(form.test_cases) == 1
         assert form.plot.getPlotItem().items is not None
 
     @patch('src.main.fetch_stat_family')
@@ -400,14 +400,14 @@ class TestEdgeCases:
         form.edit_vin.setText('MULTI_NAME')
         form.init_vin_plots()
 
-        assert len(form.stats_selection) == 100
+        assert len(form.test_cases) == 100
 
         # Navigate through all; each should have a different title
         names_seen = set()
         for i in range(100):
             form.current_stat = i
             form._display_current_stat()
-            names_seen.add(form.stats_selection[i].name)
+            names_seen.add(form.test_cases[i].name)
 
         assert len(names_seen) == 100
 
@@ -671,7 +671,7 @@ class TestQueryPriority:
         # vehicle_query should have been called, not vin_query
         mock_vehicle.assert_called_once()
         mock_vin.assert_not_called()
-        assert form.stats_selection[0].vehicle == 'VIN_VEH'
+        assert form.test_cases[0].vehicle == 'VIN_VEH'
 
 
 # ===========================================================================

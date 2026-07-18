@@ -443,7 +443,7 @@ class intro_form(QMainWindow):
         root.addLayout(body)
 
         # --- application state ---
-        self.stats_selection = []
+        self.test_cases = []
         self.current_stat = 0
         self.all_outliers = []
 
@@ -517,7 +517,7 @@ class intro_form(QMainWindow):
 
     def _on_door_changed(self, row):
         self._update_action_buttons()
-        if not self.all_outliers or not self.stats_selection:
+        if not self.all_outliers or not self.test_cases:
             return
         door_key = self._selected_door_key()
         if door_key:
@@ -526,7 +526,7 @@ class intro_form(QMainWindow):
             filtered = self.all_outliers
         self._dedupe_stats_selection(filtered)
         self.current_stat = 0
-        if self.stats_selection:
+        if self.test_cases:
             self._display_current_stat()
         else:
             self._clear_plot()
@@ -540,7 +540,6 @@ class intro_form(QMainWindow):
     # -----------------------------------------------------------------------
 
     def _populate_makes(self):
-        """Populate the make combo box from the database."""
         self.make_combo.blockSignals(True)
         self.make_combo.clear()
         self.make_combo.addItem("")
@@ -552,7 +551,6 @@ class intro_form(QMainWindow):
         self.make_combo.blockSignals(False)
 
     def _on_make_changed(self, index):
-        """Populate models when the selected make changes."""
         self.model_combo.blockSignals(True)
         self.model_combo.clear()
         self.model_combo.addItem("")
@@ -574,7 +572,6 @@ class intro_form(QMainWindow):
         self.year_combo.blockSignals(False)
 
     def _on_model_changed(self, index):
-        """Populate years when the selected model changes."""
         self.year_combo.blockSignals(True)
         self.year_combo.clear()
         self.year_combo.addItem("")
@@ -596,7 +593,6 @@ class intro_form(QMainWindow):
     # -----------------------------------------------------------------------
 
     def _clear_plot(self):
-        """Clear the plot widget and reset the title."""
         self.plot.clear()
         self.plot.setTitle('')
 
@@ -637,7 +633,6 @@ class intro_form(QMainWindow):
                 pen=pg.mkPen(LIME, width=1.5, style=pg.QtCore.Qt.DashLine),
             )
 
-            # Center the plot view on the outlier point
             margin_x = max(abs(float(stat.result_x)) * 0.3, 5.0)
             margin_y = max(abs(float(stat.result_y)) * 0.3, 5.0)
             self.plot.setXRange(
@@ -697,20 +692,20 @@ class intro_form(QMainWindow):
 
     def _update_nav_buttons(self):
         """Enable/disable prev/next buttons based on current position."""
-        has_items = len(self.stats_selection) > 0
+        has_items = len(self.test_cases) > 0
         self.button_next.setEnabled(
-            has_items and self.current_stat < len(self.stats_selection) - 1
+            has_items and self.current_stat < len(self.test_cases) - 1
         )
         self.button_prev.setEnabled(has_items and self.current_stat > 0)
         if has_items:
             self.label_status.setText(
-                f'{self.current_stat + 1} / {len(self.stats_selection)}'
+                f'{self.current_stat + 1} / {len(self.test_cases)}'
             )
         else:
             self.label_status.setText('')
 
     def show_next(self):
-        if self.current_stat < len(self.stats_selection) - 1:
+        if self.current_stat < len(self.test_cases) - 1:
             self.current_stat += 1
             self._display_current_stat()
 
@@ -720,10 +715,9 @@ class intro_form(QMainWindow):
             self._display_current_stat()
 
     def _display_current_stat(self):
-        """Render the current stat's plot and update status/navigation."""
-        if not self.stats_selection:
+        if not self.test_cases:
             return
-        stat = self.stats_selection[self.current_stat]
+        stat = self.test_cases[self.current_stat]
         try:
             family_raw = fetch_stat_family(
                 stat.name, stat.location, self.db_config
@@ -759,7 +753,7 @@ class intro_form(QMainWindow):
             if key not in seen:
                 seen.add(key)
                 deduped.append(tc)
-        self.stats_selection = apply_stat_ordering(deduped)
+        self.test_cases = apply_stat_ordering(deduped)
 
     def _apply_query_results(self, raw_outliers, label):
         """Process raw query results: filter by door, dedupe, and display."""
@@ -769,7 +763,7 @@ class intro_form(QMainWindow):
             self._clear_plot()
             self._update_nav_buttons()
             self.all_outliers = []
-            self.stats_selection = []
+            self.test_cases = []
             self.statusBar().showMessage(
                 self.locale['EZ_STATUS_NO_OUTLIERS'].format(label=label)
             )
@@ -785,7 +779,7 @@ class intro_form(QMainWindow):
         self.current_stat = 0
         self.statusBar().showMessage(
             self.locale['EZ_STATUS_FOUND_OUTLIERS'].format(
-                count=len(self.stats_selection), label=label
+                count=len(self.test_cases), label=label
             )
         )
         self._display_current_stat()
@@ -795,7 +789,6 @@ class intro_form(QMainWindow):
     # -----------------------------------------------------------------------
 
     def init_vehicle_plots(self):
-        """Query outliers by make/model/year and display results."""
         if not self.button_enter.isEnabled():
             self.statusBar().showMessage('Select a door first.')
             return
@@ -817,7 +810,6 @@ class intro_form(QMainWindow):
         self._apply_query_results(raw_outliers, f'{make} {model} {year}')
 
     def init_vin_plots(self):
-        """Query outliers by VIN and display results."""
         if not self.button_vin_query.isEnabled():
             self.statusBar().showMessage('Select a door first.')
             return

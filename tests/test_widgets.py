@@ -75,7 +75,7 @@ class TestInitialUI:
         assert form.door_location_widget.currentRow() == 0
 
     def test_stats_selection_empty(self, form):
-        assert form.stats_selection == []
+        assert form.test_cases == []
         assert form.current_stat == 0
 
 
@@ -133,7 +133,7 @@ class TestNavigation:
         form.edit_vin.setText('VIN1')
         form.init_vin_plots()
 
-        assert len(form.stats_selection) == 3
+        assert len(form.test_cases) == 3
         assert form.current_stat == 0
         assert form.button_next.isEnabled() is True
         assert form.button_prev.isEnabled() is False
@@ -211,8 +211,8 @@ class TestDoorFilter:
         form.door_location_widget.setCurrentRow(0)  # driver_front
         form.edit_vin.setText('VIN1')
         form.init_vin_plots()
-        assert len(form.stats_selection) == 2
-        assert all(tc.location == 'driver_front' for tc in form.stats_selection)
+        assert len(form.test_cases) == 2
+        assert all(tc.location == 'driver_front' for tc in form.test_cases)
 
     @patch('src.main.fetch_stat_family')
     @patch('src.main.vin_query')
@@ -227,8 +227,8 @@ class TestDoorFilter:
         form.door_location_widget.setCurrentRow(0)  # driver_front
         form.edit_vin.setText('VIN1')
         form.init_vin_plots()
-        assert len(form.stats_selection) == 1
-        assert form.stats_selection[0].location == 'driver_front'
+        assert len(form.test_cases) == 1
+        assert form.test_cases[0].location == 'driver_front'
 
 
 # ===========================================================================
