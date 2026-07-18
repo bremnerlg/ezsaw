@@ -1,9 +1,10 @@
 """
-EZSAW V1.2.0 Beta — PyQt5 GUI for door check outlier analysis.
+EZSAW V3.1.1 Alpha — PyQt5 GUI for door check outlier analysis.
 
 Provides an interactive interface for querying vehicle door measurement
 data by VIN or make/model/year, plotting outlier results, and navigating
-through stat families with pyqtgraph.
+through stat families with pyqtgraph. Uses a left sidebar (statistical
+software pattern) for controls and a main plot area on the right.
 """
 import sys
 from pathlib import Path
@@ -302,126 +303,121 @@ class intro_form(QMainWindow):
         sep.setObjectName('separator')
         sep.setFrameShape(QFrame.HLine)
 
-        # --- controls row: VIN input, vehicle dropdowns, door list ---
-        controls = QHBoxLayout()
-        controls.setSpacing(10)
+        # --- body: sidebar controls + right panel (nav + plot) ---
+        body = QHBoxLayout()
+        body.setSpacing(0)
 
-        # Left column: VIN input with button below
-        vin_col = QVBoxLayout()
-        vin_col.setSpacing(6)
+        # Left sidebar (statistical software pattern: controls panel)
+        sidebar = QWidget()
+        sidebar.setObjectName('sidebar')
+        sidebar.setStyleSheet(
+            f'#sidebar {{ background-color: {BG_WIDGET}; border: 1px solid {BORDER}; border-radius: 6px; }}'
+        )
+        sidebar.setFixedWidth(270)
+        side = QVBoxLayout(sidebar)
+        side.setContentsMargins(12, 10, 12, 10)
+        side.setSpacing(8)
+
+        # VIN section
+        vin_lbl = QLabel('VIN')
+        vin_lbl.setStyleSheet(
+            f'color: {TEXT_DIM}; font-size: 11px; font-weight: 500; letter-spacing: 0.5px;'
+        )
+        side.addWidget(vin_lbl)
         self.edit_vin = QLineEdit()
         self.edit_vin.setPlaceholderText(self.locale['EZ_VIN_PLACEHOLDER'])
-        self.edit_vin.setMinimumWidth(160)
-        self.edit_vin.setMaximumWidth(240)
         self.edit_vin.returnPressed.connect(self.init_vin_plots)
-        vin_col.addWidget(self.edit_vin)
+        side.addWidget(self.edit_vin)
         self.button_vin_query = QPushButton(self.locale['EZ_BTN_QUERY'])
         self.button_vin_query.clicked.connect(self.init_vin_plots)
-        vin_col.addWidget(self.button_vin_query)
-        vin_col.addStretch()
-        controls.addLayout(vin_col)
+        self.button_vin_query.setEnabled(False)
+        side.addWidget(self.button_vin_query)
 
-        # OR vertical divider between VIN and Vehicle sections
-        or_div = QWidget()
-        or_div.setFixedWidth(28)
-        or_lo = QVBoxLayout(or_div)
+        # OR horizontal divider
+        or_hdiv = QFrame()
+        or_hdiv.setFrameShape(QFrame.HLine)
+        or_hdiv.setStyleSheet(f'color: {BORDER};')
+        or_lbl2 = QLabel('OR')
+        or_lbl2.setAlignment(Qt.AlignCenter)
+        or_lbl2.setStyleSheet(
+            f'color: {TEXT_DIM}; font-size: 10px; font-weight: 600; background: transparent; padding: 0;'
+        )
+        or_box = QWidget()
+        or_box.setFixedHeight(26)
+        or_lo = QVBoxLayout(or_box)
         or_lo.setContentsMargins(0, 0, 0, 0)
         or_lo.setSpacing(2)
-        ln_top = QFrame()
-        ln_top.setFrameShape(QFrame.VLine)
-        ln_top.setStyleSheet(f'color: {BORDER};')
-        ln_top.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
-        or_lo.addWidget(ln_top, stretch=1)
-        or_lbl = QLabel('OR')
-        or_lbl.setAlignment(Qt.AlignCenter)
-        or_lbl.setStyleSheet(
-            f'color: {TEXT_DIM}; font-size: 10px; font-weight: 600; background: transparent; padding: 2px 0;'
-        )
-        or_lo.addWidget(or_lbl)
-        ln_bot = QFrame()
-        ln_bot.setFrameShape(QFrame.VLine)
-        ln_bot.setStyleSheet(f'color: {BORDER};')
-        ln_bot.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
-        or_lo.addWidget(ln_bot, stretch=1)
-        controls.addWidget(or_div)
+        or_lo.addWidget(or_hdiv)
+        or_lo.addWidget(or_lbl2)
+        side.addWidget(or_box)
 
-        controls.addSpacing(4)
-
-        # Middle column: vehicle dropdowns with Enter button below
-        vehicle_col = QVBoxLayout()
-        vehicle_col.setSpacing(6)
-        vehicle_row = QHBoxLayout()
-        vehicle_row.setSpacing(6)
-        vehicle_label = QLabel(self.locale['EZ_LABEL_VEHICLE'])
-        vehicle_label.setStyleSheet(
-            f'color: {TEXT_DIM}; font-size: 12px; font-weight: 500;'
+        # Vehicle section
+        veh_lbl = QLabel(self.locale['EZ_LABEL_VEHICLE'])
+        veh_lbl.setStyleSheet(
+            f'color: {TEXT_DIM}; font-size: 11px; font-weight: 500; letter-spacing: 0.5px;'
         )
-        vehicle_row.addWidget(vehicle_label)
+        side.addWidget(veh_lbl)
         self.make_combo = QComboBox()
-        self.make_combo.setFixedWidth(120)
         self.make_combo.setPlaceholderText(self.locale['EZ_LABEL_MAKE'])
-        vehicle_row.addWidget(self.make_combo)
+        side.addWidget(self.make_combo)
         self.model_combo = QComboBox()
-        self.model_combo.setFixedWidth(120)
         self.model_combo.setPlaceholderText(self.locale['EZ_LABEL_MODEL'])
         self.model_combo.setEnabled(False)
-        vehicle_row.addWidget(self.model_combo)
+        side.addWidget(self.model_combo)
         self.year_combo = QComboBox()
-        self.year_combo.setFixedWidth(80)
         self.year_combo.setPlaceholderText(self.locale['EZ_LABEL_YEAR'])
         self.year_combo.setEnabled(False)
-        vehicle_row.addWidget(self.year_combo)
-        vehicle_col.addLayout(vehicle_row)
+        side.addWidget(self.year_combo)
         self.button_enter = QPushButton(self.locale['EZ_BTN_ENTER'])
         self.button_enter.clicked.connect(self.init_vehicle_plots)
-        vehicle_col.addWidget(self.button_enter)
-        vehicle_col.addStretch()
-        controls.addLayout(vehicle_col)
+        self.button_enter.setEnabled(False)
+        side.addWidget(self.button_enter)
 
-        controls.addSpacing(12)
+        # Separator
+        sep2 = QFrame()
+        sep2.setObjectName('separator')
+        sep2.setFrameShape(QFrame.HLine)
+        side.addWidget(sep2)
 
-        # Right column: door list
-        door_col = QVBoxLayout()
-        door_col.setSpacing(6)
-        door_label = QLabel(self.locale['EZ_LABEL_DOOR'])
-        door_label.setStyleSheet(
-            f'color: {TEXT_DIM}; font-size: 12px; font-weight: 500;'
+        # Door section
+        dr_lbl = QLabel(self.locale['EZ_LABEL_DOOR'])
+        dr_lbl.setStyleSheet(
+            f'color: {TEXT_DIM}; font-size: 11px; font-weight: 500; letter-spacing: 0.5px;'
         )
-        door_col.addWidget(door_label)
+        side.addWidget(dr_lbl)
         self.door_location_widget = QListWidget()
-        self.door_location_widget.setMinimumWidth(130)
-        self.door_location_widget.setMaximumWidth(170)
-        self.door_location_widget.setFixedHeight(130)
+        self.door_location_widget.setMinimumHeight(110)
         for label, _ in DOOR_LOCATIONS:
             self.door_location_widget.addItem(label)
         self.door_location_widget.setCurrentRow(0)
-        door_col.addWidget(self.door_location_widget)
-        controls.addLayout(door_col)
+        side.addWidget(self.door_location_widget)
+        side.addStretch()
 
-        controls.addStretch()
+        body.addWidget(sidebar)
 
-        # --- navigation row: prev/next + status counter ---
+        # Right panel: nav + plot
+        right = QVBoxLayout()
+        right.setSpacing(6)
+        right.setContentsMargins(10, 0, 0, 0)
+
         nav = QHBoxLayout()
         nav.setSpacing(10)
-
         self.button_prev = QPushButton(self.locale['EZ_BTN_PREV'])
         self.button_next = QPushButton(self.locale['EZ_BTN_NEXT'])
         self.button_next.setEnabled(False)
         self.button_prev.setEnabled(False)
-
         self.label_status = QLabel('')
         self.label_status.setStyleSheet(
             f'color: {TEXT_DIM}; font-size: 12px; font-weight: 400;'
         )
         self.label_status.setAlignment(Qt.AlignCenter)
-
         nav.addWidget(self.button_prev)
         nav.addStretch()
         nav.addWidget(self.label_status)
         nav.addStretch()
         nav.addWidget(self.button_next)
+        right.addLayout(nav)
 
-        # --- pyqtgraph plot widget ---
         self.plot = pg.PlotWidget()
         self.plot.setBackground(BG_WIDGET)
         self.plot.showGrid(x=True, y=True, alpha=0.15)
@@ -433,13 +429,14 @@ class intro_form(QMainWindow):
         self.plot.setLabel('bottom', '', color=TEXT)
         self.plot.setLabel('left', '', color=TEXT)
         self.plot.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        right.addWidget(self.plot, stretch=1)
+
+        body.addLayout(right, stretch=1)
 
         # --- assemble layout ---
         root.addLayout(header)
         root.addWidget(sep)
-        root.addLayout(controls)
-        root.addLayout(nav)
-        root.addWidget(self.plot, stretch=1)
+        root.addLayout(body)
 
         # --- application state ---
         self.stats_selection = []
@@ -454,6 +451,7 @@ class intro_form(QMainWindow):
         self.model_combo.currentIndexChanged.connect(self._on_model_changed)
         self.door_location_widget.currentRowChanged.connect(self._on_door_changed)
 
+        self._update_action_buttons()
         self.statusBar().showMessage(self.locale['EZ_STATUS_READY'])
         self._populate_makes()
 
@@ -503,7 +501,14 @@ class intro_form(QMainWindow):
         if current_row >= 0:
             self.door_location_widget.setCurrentRow(current_row)
 
+    def _update_action_buttons(self):
+        """Enable query/enter buttons only when a door is selected."""
+        has_door = self._selected_door_key() is not None
+        self.button_vin_query.setEnabled(has_door)
+        self.button_enter.setEnabled(has_door)
+
     def _on_door_changed(self, row):
+        self._update_action_buttons()
         if not self.all_outliers or not self.stats_selection:
             return
         door_key = self._selected_door_key()

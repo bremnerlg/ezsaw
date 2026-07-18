@@ -172,6 +172,60 @@ The V3.2.0A iteration successfully implemented the configurable transversal syst
 
 ---
 
+## V3.1.1 Alpha (2026-07-17)
+
+### Overview
+UI layout overhaul following statistical software design patterns, with progressive disclosure and door-required enforcement.
+
+### Changes
+
+#### Layout: Left Sidebar (Statistical Software Pattern)
+- Moved all controls from a horizontal controls bar to a **left sidebar** (270px fixed width, dark themed with border-radius)
+- Research conducted on JMP, Minitab, SPSS, and dashboard design patterns — the sidebar pattern is the industry standard for data analysis tools because controls remain always-visible while maximizing plot area
+- **Rationale:** Three-column row layout caused clipping at narrow window widths. The sidebar pattern gives:
+  - Maximum vertical space for the outlier plot
+  - Natural left-to-right reading flow (controls → visualization)
+  - Scalability for future control additions
+  - Consistent with how JMP, Minitab, and other statistical tools organize their UI
+- The sidebar uses a distinctive dark-widget background (`BG_WIDGET`) with a visible border to clearly demarcate the controls panel from the plot area
+
+#### OR Divider (Adapted for Sidebar)
+- Changed from vertical "OR" divider between VIN/Vehicle columns to a **horizontal** `── OR ──` divider between VIN and Vehicle sections within the sidebar
+- **Rationale:** In a vertical sidebar, a horizontal divider is the natural choice — consistent with daisyUI, Semantic UI divider patterns
+
+#### Progressive Disclosure: Button Greying Out
+- **Both** Query and Enter buttons are now **disabled (greyed out)** until a door location is selected
+- New `_update_action_buttons()` method toggles `setEnabled(False/True)` on both buttons based on `_selected_door_key()` returning a valid door
+- Called at initialization and on every `_on_door_changed` event
+- **Rationale:** Prevents users from running queries before selecting a door (which would return empty results), matching the common "prerequisite → action" pattern in enterprise software
+
+#### Static Analysis Results
+- **108/108 tests passing** (unit: 39, widgets: 26, stress: 34)
+- Pyflakes shows only pre-existing warnings (false positives in `__init__.py` re-exports, unused vars in legacy scripts)
+
+#### Static Analysis (pyflakes)
+All 108 tests pass. Pyflakes shows only pre-existing warnings:
+- `src/core/__init__.py`: All imports flagged as unused (false positives — this is the public API re-export module)
+- `export_fixed.py:170`: Unused `v_cols` (pre-existing)
+- `fix_db.py`: Unused imports/variables (all pre-existing)
+- No new warnings introduced by V3.1.1 changes
+
+### Documentation
+- **BRIEF.md:** Updated version, added requirement that AI agents must update **both** BRIEF.md and CHANGELOG.md
+- **CHANGELOG.md:** This entry added
+- **design_plans_log.docx:** Created with full GUI design decisions record
+- **main.py docstring:** Updated to reflect V3.1.1 Alpha and sidebar layout
+
+### File Changes
+| File | What |
+|------|------|
+| `src/main.py` | Sidebar layout, `_update_action_buttons()`, button greying, docstring update |
+| `BRIEF.md` | Version bump, dual-file documentation requirement |
+| `docs/CHANGELOG.md` | V3.1.1 Alpha entry added |
+| `docs/design_plans_log.docx` | Created with all GUI decision records |
+
+---
+
 ## V3.1.0A
 
 ### Goals and Aims With This Iteration
