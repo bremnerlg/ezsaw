@@ -321,7 +321,31 @@ class intro_form(QMainWindow):
         vin_col.addStretch()
         controls.addLayout(vin_col)
 
-        controls.addSpacing(12)
+        # OR vertical divider between VIN and Vehicle sections
+        or_div = QWidget()
+        or_div.setFixedWidth(28)
+        or_lo = QVBoxLayout(or_div)
+        or_lo.setContentsMargins(0, 0, 0, 0)
+        or_lo.setSpacing(2)
+        ln_top = QFrame()
+        ln_top.setFrameShape(QFrame.VLine)
+        ln_top.setStyleSheet(f'color: {BORDER};')
+        ln_top.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
+        or_lo.addWidget(ln_top, stretch=1)
+        or_lbl = QLabel('OR')
+        or_lbl.setAlignment(Qt.AlignCenter)
+        or_lbl.setStyleSheet(
+            f'color: {TEXT_DIM}; font-size: 10px; font-weight: 600; background: transparent; padding: 2px 0;'
+        )
+        or_lo.addWidget(or_lbl)
+        ln_bot = QFrame()
+        ln_bot.setFrameShape(QFrame.VLine)
+        ln_bot.setStyleSheet(f'color: {BORDER};')
+        ln_bot.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
+        or_lo.addWidget(ln_bot, stretch=1)
+        controls.addWidget(or_div)
+
+        controls.addSpacing(4)
 
         # Middle column: vehicle dropdowns with Enter button below
         vehicle_col = QVBoxLayout()
