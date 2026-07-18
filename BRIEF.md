@@ -1,7 +1,7 @@
 # EZSAW Builder Brief
 
 > **Reusable context for AI models and new contributors.**
-> Last updated: 2026-07-17 | Version: 3.1.1 Alpha (sidebar layout)
+> Last updated: 2026-07-17 | Version: 4.0.0 Beta
 
 **IMPORTANT:** Any AI agent working on this project MUST update BRIEF.md AND CHANGELOG.md (in docs/) as it goes to avoid stale context accumulating and ensure needed context is always present. Delete sections that are no longer relevant; add new ones as discoveries are made.
 
@@ -97,65 +97,6 @@ An **outlier** is any measurement where result_y falls outside tolerance bounds.
 ## The Configurability System
 
 The entire DB schema is abstracted through `config/db_config*.json`. No column names or table names are hardcoded in Python — they're referenced through config keys. This means the same codebase works against different DB schemas by swapping the config file, and each locale can point to a different database.
-
----
-
-## V3.1.0A — Data Integrity Fixes (2026-07-17)
-
-12. **Zero outliers in all databases** — Every `auto_door_stats` row had `result_y_lower_lim < result_y < result_y_upper_lim` by design. The data generators (`gen_psql.py`, `sql_fix.sql`) always produced tolerance bounds that contained the result value. The app could never find anything to display.
-13. **Empty graph on first load** — Even after adding outliers, each VIN had only 1–6 outliers concentrated at a few doors. The default door selection ("Driver Front") often had nothing, so the door filter emptied `stats_selection` and the nav buttons were disabled.
-    - Fixed with a two-stage `db/introduce_outliers.sql`: (a) for each VIN/door block, make stat #3 an outlier (guarantees every door has ≥1 outlier), then (b) sprinkle ~2% extra random outliers for variety.
-    - Result: 8857 outliers per DB (23% of all stats), every VIN has 3–13 outliers across 2–6 doors, and "Driver Front" always has at least 1.
-
-The fundamental fix: the original data generators always produced `lower < y < upper`, guaranteeing zero outliers. The `introduce_outliers.sql` script ensures every VIN/door block has at least one outlier so the UI always has data to display regardless of door selection.
-
-### Bugs Found & Fixed
-
-1. **Stat ID ordering was alphabetical, not custom** — Within each 9-block, stat IDs followed alphabetical order (Closing Energy First, Closing Energy Full, Door Check..., Hinge..., Seal..., Static Closing, Striker). They now follow `stat_ordering.json` custom order.
-
-2. **SUVs had only 2 doors (rear_hatch, hood)** — Missing all 4 passenger doors (driver_front, driver_rear, passenger_front, passenger_rear). Root cause: `DOOR_MAP` in `gen_psql.py`, `generate_steps.py`, `insert_data.py`, and `fix_sql.py` all defined SUV as `['rear_hatch', 'hood']` instead of `['driver_front', 'driver_rear', 'passenger_front', 'passenger_rear', 'rear_hatch', 'hood']`.
-
-3. **Hatchback was missing rear_hatch** — Root cause: same scripts defined hatchback as `['driver_front', 'driver_rear', 'passenger_front', 'passenger_rear']` (missing `rear_hatch`).
-
-4. **French & Spanish SQL had quoted table names** — `INSERT INTO "véhicules"` / `INSERT INTO "vehículos"`. The `export_fixed.py` regex did not handle double-quoted identifiers; fixed with `"?` patterns and fallback search.
-
-5. **Decimal values were quoted as strings** — `psycopg2` returns `Decimal` objects which `isinstance(val, (int, float))` did not catch, causing them to be wrapped in quotes: `'245.9'` instead of `245.9`. Fixed by adding `decimal.Decimal` to the type check.
-
-6. **`ezsaw` DB was broken** — Created empty then loaded `insert_steps.sql` (which has no CREATE TABLE statements). Fixed by loading `ezsaw_tables.sql` first for schema+data, then `insert_steps.sql` for interleaved stats.
-
-### Critical Config Bugs Found (not in data, but in locale db_config files)
-
-7. **`db_config_es.json`** — `EZ_JOINT_TABLE_DOOR_LOCATION_REAR_HATCH` was `"maletero trasero"` (with space) but SQL enum and data use `"maletero_trasero"` (underscore). Door filter would return no results for Spanish rear hatch.
-
-8. **`db_config_fr.json`** — `EZ_JOINT_TABLE_DOOR_LOCATION_REAR_HATCH` was `"capot_arrière"` ("rear hood") but SQL enum and data use `"hayon"` ("hatch"). Door filter broken for French.
-
-9. **`db_config_de.json`** — `EZ_JOINT_TABLE_DOOR_LOCATION_REAR_HATCH` was `"heckspoiler"` ("rear spoiler") but SQL enum and data use `"heckklappe"` ("rear hatch"). Door filter broken for German.
-
-10. **`db_config_nl.json`** — `EZ_JOINT_TABLE_DOOR_LOCATION_REAR_HATCH` was `"achterste_deksel"` ("rear lid") but SQL enum and data use `"achterklep"` ("hatch"). Door filter broken for Dutch.
-
-11. **`EZ_PG_DB` in all locale configs** — Pointed to `ezsaw3_*` databases that don't exist. Fixed to `ezsaw_*`.
-
-### Deprecated Scripts (have bugs, replaced by `export_fixed.py`)
-
-| Script | Bugs |
-|--------|------|
-| `db/gen_psql.py` | SUV uses `'trunk/hatch'` (not in door_t enum); hatchback missing `rear_hatch` |
-| `db/generate_steps.py` | SUV missing passenger doors; hatchback missing `rear_hatch` |
-| `db/insert_data.py` | SUV missing passenger doors; hatchback missing `rear_hatch`; wrong French column names (`nom_stat_porte_vehicule`, `preleve`, `deux_variables`, `resultat_x` instead of actual column names) |
-| `db/fix_sql.py` | SUV missing passenger doors; hatchback missing `rear_hatch`; syntax error at line 223 (stray `'` before comma variable); all `manufacture_date` hardcoded to `'2021-01-01'` |
-
-The correct workflow is now: apply `sql_fix.sql` → run `fix_db.py` to fix ezsaw3 DB → run `export_fixed.py` to export to all SQL files.
-
-### How Fixes Were Applied
-
-| Step | Tool | What |
-|------|------|------|
-| 1 | `db/sql_fix.sql` | SQL script ran on `ezsaw3` DB: reordered stat IDs, added missing SUV passenger doors + hatchback rear_hatch |
-| 2 | `export_fixed.py` | Python script that reads fixed `ezsaw3` DB and writes fresh INSERT blocks into all 6 SQL files |
-| 3 | `db/introduce_outliers.sql` | Push ~10% of result_y values outside tolerance bounds so outliers exist |
-| 4 | `export_fixed.py` | Re-export (re-reads ezsaw3 DB with outliers, writes all SQL files) |
-| 5 | DB rebuild | All 7 databases dropped/recreated from the fixed SQL files |
-
 ---
 
 ## Known Issues & Future Work

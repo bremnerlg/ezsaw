@@ -56,7 +56,7 @@ class TestInitialUI:
     """Verify the window starts in the expected default state."""
 
     def test_window_title(self, form):
-        assert '1.2.0 Beta' in form.windowTitle()
+        assert '4.0.0 Beta' in form.windowTitle()
 
     def test_vin_placeholder(self, form):
         assert form.edit_vin.placeholderText() == 'Enter a VIN...'
@@ -253,8 +253,8 @@ class TestLanguageSelector:
         assert 'es' in codes
         assert 'nl' in codes
 
-    def test_window_version_is_1_0_0_beta(self, form, qtbot):
-        assert '1.2.0 Beta' in form.windowTitle()
+    def test_window_version_is_4_0_0_beta(self, form, qtbot):
+        assert '4.0.0 Beta' in form.windowTitle()
 
     def test_minimum_size_enforced(self, form, qtbot):
         assert form.minimumWidth() >= 960

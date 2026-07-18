@@ -221,7 +221,7 @@ class TestLocale:
     def test_load_english_strings(self):
         strings = load_locale_strings('en')
         assert strings['EZ_LOCALE_CODE'] == 'en'
-        assert strings['EZ_WINDOW_TITLE'] == 'EZSAW Version 1.2.0 Beta'
+        assert strings['EZ_WINDOW_TITLE'] == 'EZSAW Version 4.0.0 Beta'
         assert 'EZ_BTN_QUERY' in strings
         assert 'EZ_STATUS_READY' in strings
 
