@@ -19,7 +19,7 @@ from PyQt5.QtWidgets import (
     QLabel, QFrame, QComboBox, QSizePolicy,
 )
 from PyQt5.QtGui import QPixmap
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QProcess
 import pyqtgraph as pg
 import numpy as np
 from src.core.auto_stat_facilities import (
@@ -386,9 +386,13 @@ class intro_form(QMainWindow):
         )
         side.addWidget(dr_lbl)
         self.door_location_widget = QListWidget()
-        self.door_location_widget.setMinimumHeight(110)
         for label, _ in DOOR_LOCATIONS:
             self.door_location_widget.addItem(label)
+        row_h = self.door_location_widget.sizeHintForRow(0)
+        self.door_location_widget.setMinimumHeight(
+            row_h * self.door_location_widget.count() + 8  # 4px padding top/bottom from stylesheet
+            if row_h > 0 else 180
+        )
         self.door_location_widget.setCurrentRow(0)
         side.addWidget(self.door_location_widget)
         side.addStretch()
@@ -472,8 +476,7 @@ class intro_form(QMainWindow):
             self._restart_app()
 
     def _restart_app(self):
-        import subprocess
-        subprocess.Popen([sys.executable] + sys.argv)
+        QProcess.startDetached(sys.executable, sys.argv)
         QApplication.instance().quit()
 
     # -----------------------------------------------------------------------
@@ -502,10 +505,15 @@ class intro_form(QMainWindow):
             self.door_location_widget.setCurrentRow(current_row)
 
     def _update_action_buttons(self):
-        """Enable query/enter buttons only when a door is selected."""
+        """Enable query/enter buttons only when a door is selected and enabled."""
         has_door = self._selected_door_key() is not None
-        self.button_vin_query.setEnabled(has_door)
-        self.button_enter.setEnabled(has_door)
+        current_item = self.door_location_widget.currentItem()
+        enabled = has_door and (
+            current_item is None
+            or bool(current_item.flags() & Qt.ItemIsEnabled)
+        )
+        self.button_vin_query.setEnabled(enabled)
+        self.button_enter.setEnabled(enabled)
 
     def _on_door_changed(self, row):
         self._update_action_buttons()
@@ -788,6 +796,9 @@ class intro_form(QMainWindow):
 
     def init_vehicle_plots(self):
         """Query outliers by make/model/year and display results."""
+        if not self.button_enter.isEnabled():
+            self.statusBar().showMessage('Select a door first.')
+            return
         make = self.make_combo.currentText()
         model = self.model_combo.currentText()
         year = self.year_combo.currentText()
@@ -807,6 +818,9 @@ class intro_form(QMainWindow):
 
     def init_vin_plots(self):
         """Query outliers by VIN and display results."""
+        if not self.button_vin_query.isEnabled():
+            self.statusBar().showMessage('Select a door first.')
+            return
         vin = self.edit_vin.text().strip()
         if not vin:
             self.statusBar().showMessage(self.locale['EZ_STATUS_ENTER_VIN'])

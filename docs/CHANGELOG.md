@@ -4,6 +4,18 @@
 
 ---
 
+## V4.0.0 Beta
+
+### Bug Fixes
+
+- **`_restart_app` subprocess leak**: Replaced `subprocess.Popen` with `QProcess.startDetached` to avoid orphaned processes on restart.
+- **Door list minimum height**: Changed from hardcoded 110px to a calculated height based on item count and row size hint, ensuring all 6 doors are visible without scrolling.
+- **VIN/Vehicle query guard**: Added early return in `init_vin_plots` and `init_vehicle_plots` when the respective button is disabled (no door selected), showing a "Select a door first." status message.
+- **Button state on disabled door item**: `_update_action_buttons` now checks that the selected door item is actually enabled (via `flags() & Qt.ItemIsEnabled`) before enabling query/enter buttons.
+- **Window title format**: Verified `EZ_WINDOW_TITLE` reads from locale and renders "EZSAW Version 4.0.0 Beta" correctly (no code change required).
+
+---
+
 ## V1.2.0 Beta
 
 ### Overview
