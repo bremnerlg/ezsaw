@@ -1,4 +1,5 @@
 {
+  "_note": "EZ_VEHICLES_BODY_TYPE_FIELD, EZ_STAT_SAMPLED_FIELD, EZ_STAT_TWO_VAR_FIELD are reserved for future use.",
   "EZ_VEHICLES_TABLE_NAME": "vehículos",
   "EZ_VEHICLES_PK": "matrícula",
   "EZ_VEHICLES_MAKE_FIELD": "marca",

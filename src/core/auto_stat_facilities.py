@@ -7,10 +7,22 @@ inputs and quoted identifiers for safety.
 """
 
 import os
-import psycopg
+import atexit
 import json
 import numpy as np
 from pathlib import Path
+
+try:
+    import psycopg
+    HAS_PSYCOPG = True
+except ImportError:
+    HAS_PSYCOPG = False
+
+try:
+    from psycopg_pool import ConnectionPool
+    HAS_PSYCOPG_POOL = True
+except ImportError:
+    HAS_PSYCOPG_POOL = False
 
 # ---------------------------------------------------------------------------
 # Config & connection
@@ -32,21 +44,68 @@ def load_db_config():
 # Default config loaded at import time; individual functions accept overrides.
 PGDB_CONFIG = load_db_config()
 
+# ---------------------------------------------------------------------------
+# Connection pool (psycopg_pool with fallback)
+# ---------------------------------------------------------------------------
+
+_POOL = None
+
+
+def _get_pool():
+    """Lazily initialise a psycopg_pool.ConnectionPool.
+
+    Env vars are resolved once at pool creation time.  If ``psycopg_pool`` is
+    not installed, returns ``None`` and every call falls back to a direct
+    connection.
+    """
+    global _POOL
+    if _POOL is None and HAS_PSYCOPG_POOL:
+        cfg = PGDB_CONFIG
+        try:
+            _POOL = ConnectionPool(
+                conninfo=(
+                    f"dbname={os.environ.get('EZ_PG_DB') or cfg['EZ_PG_DB']} "
+                    f"user={os.environ.get('EZ_PG_USER') or cfg['EZ_PG_USER']} "
+                    f"password={os.environ.get('EZ_PG_PASS') or cfg['EZ_PG_PASS']} "
+                    f"host={os.environ.get('EZ_PG_HOST') or cfg['EZ_PG_HOST']} "
+                    f"port={os.environ.get('EZ_PG_PORT') or cfg.get('EZ_PG_PORT', 5432)}"
+                ),
+                min_size=1,
+                max_size=4,
+            )
+            atexit.register(_POOL.close)
+        except Exception:
+            pass
+    return _POOL
+
+
+def _return_conn(conn):
+    """Return a connection to the pool, or close it if no pool is active."""
+    pool = _get_pool()
+    if pool is not None and not conn.closed:
+        pool.putconn(conn)
+    elif HAS_PSYCOPG and not conn.closed:
+        conn.close()
+
 
 def ezsaw_default_connect(config=None):
-    """Open a new psycopg connection using the given (or default) config.
+    """Return a DB connection from the pool (or a fresh one if pool is off).
 
     DB credentials are resolved in order of precedence:
-      1. Environment variables (EZ_PG_DB, EZ_PG_USER, EZ_PG_PASS, EZ_PG_HOST)
+      1. Environment variables (EZ_PG_DB, EZ_PG_USER, EZ_PG_PASS, EZ_PG_HOST, EZ_PG_PORT)
       2. Config file values
     """
     if config is None:
         config = PGDB_CONFIG
+    pool = _get_pool()
+    if pool is not None:
+        return pool.getconn()
     return psycopg.connect(
         dbname=os.environ.get('EZ_PG_DB') or config['EZ_PG_DB'],
         user=os.environ.get('EZ_PG_USER') or config['EZ_PG_USER'],
         password=os.environ.get('EZ_PG_PASS') or config['EZ_PG_PASS'],
-        host=os.environ.get('EZ_PG_HOST') or config['EZ_PG_HOST']
+        host=os.environ.get('EZ_PG_HOST') or config['EZ_PG_HOST'],
+        port=os.environ.get('EZ_PG_PORT') or config.get('EZ_PG_PORT', 5432)
     )
 
 
@@ -149,7 +208,7 @@ def vin_query(vin, config=None):
             cols = [desc[0] for desc in cur.description]
             return [dict(zip(cols, row)) for row in cur.fetchall()]
     finally:
-        conn.close()
+        _return_conn(conn)
 
 
 def build_outlier_query_by_vehicle(config):
@@ -209,7 +268,7 @@ def vehicle_query(make, model, year, config=None):
             cols = [desc[0] for desc in cur.description]
             return [dict(zip(cols, row)) for row in cur.fetchall()]
     finally:
-        conn.close()
+        _return_conn(conn)
 
 
 def build_stat_family_query(config):
@@ -259,7 +318,7 @@ def fetch_stat_family(test_name, door_location, config=None):
             cols = [desc[0] for desc in cur.description]
             return [dict(zip(cols, row)) for row in cur.fetchall()]
     finally:
-        conn.close()
+        _return_conn(conn)
 
 
 # ---------------------------------------------------------------------------
@@ -278,7 +337,7 @@ def fetch_makes(config=None):
             cur.execute(f"SELECT DISTINCT {make_col} FROM {table} ORDER BY {make_col}")
             return [row[0] for row in cur.fetchall()]
     finally:
-        conn.close()
+        _return_conn(conn)
 
 
 def fetch_models(make, config=None):
@@ -297,7 +356,7 @@ def fetch_models(make, config=None):
             )
             return [row[0] for row in cur.fetchall()]
     finally:
-        conn.close()
+        _return_conn(conn)
 
 
 def fetch_years(make, model, config=None):
@@ -318,7 +377,7 @@ def fetch_years(make, model, config=None):
             )
             return [row[0] for row in cur.fetchall()]
     finally:
-        conn.close()
+        _return_conn(conn)
 
 
 # ---------------------------------------------------------------------------
@@ -400,6 +459,9 @@ def matricize_test_cases(stats):
     matching that name are included. If the name is empty, all entries
     are included.
     """
+    if stats is None:
+        return np.zeros((2, 0))
+
     if not stats:
         return np.zeros((2, 0))
 
@@ -408,18 +470,16 @@ def matricize_test_cases(stats):
     col_idx = 0
 
     if target_name == '':
-        # Empty name: include all entries regardless of name
         for stat in stats:
-            matrix[0, col_idx] = stat.result_x
-            matrix[1, col_idx] = stat.result_y
+            matrix[0, col_idx] = stat.result_x if stat.result_x is not None else np.nan
+            matrix[1, col_idx] = stat.result_y if stat.result_y is not None else np.nan
             col_idx += 1
     else:
-        # Named: include only the first contiguous block matching target_name
         for stat in stats:
             if stat.name != target_name:
                 break
-            matrix[0, col_idx] = stat.result_x
-            matrix[1, col_idx] = stat.result_y
+            matrix[0, col_idx] = stat.result_x if stat.result_x is not None else np.nan
+            matrix[1, col_idx] = stat.result_y if stat.result_y is not None else np.nan
             col_idx += 1
 
     # Return only the filled portion of the matrix

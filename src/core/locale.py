@@ -7,6 +7,7 @@ Manages UI text strings (from locale_*.json), DB connection configs
 """
 
 import json
+import os
 from pathlib import Path
 
 # ---------------------------------------------------------------------------
@@ -106,8 +107,8 @@ def load_db_config_for_locale(locale_code=None):
 
     Resolution order:
       1. Explicit db_config file from user_prefs (if set via DB selector)
-      2. EZ_DB_CONFIG_FILE key in the locale strings
-      3. Fallback to db_config.json
+      2. Load default db_config.json, then merge locale-specific overrides
+      3. Fallback to empty dict
     """
     explicit = get_current_db_config_file()
     if explicit:
@@ -118,16 +119,39 @@ def load_db_config_for_locale(locale_code=None):
                     return json.load(f)
             except (json.JSONDecodeError, OSError):
                 pass
+
+    config = {}
+    default_path = _CONFIG_DIR / 'db_config.json'
+    try:
+        with open(default_path) as f:
+            config = json.load(f)
+    except (json.JSONDecodeError, OSError):
+        pass
+
     strings = load_locale_strings(locale_code)
     db_config_file = strings.get('EZ_DB_CONFIG_FILE', 'db_config.json')
-    filepath = _CONFIG_DIR / db_config_file
-    if not filepath.exists():
-        filepath = _CONFIG_DIR / 'db_config.json'
-    try:
-        with open(filepath) as f:
-            return json.load(f)
-    except (json.JSONDecodeError, OSError):
-        return json.loads('{}')
+    if db_config_file != 'db_config.json':
+        filepath = _CONFIG_DIR / db_config_file
+        if filepath.exists():
+            try:
+                with open(filepath) as f:
+                    config.update(json.load(f))
+            except (json.JSONDecodeError, OSError):
+                pass
+
+    # Environment variable overrides (take precedence over file values)
+    env_overrides = {
+        'EZ_PG_DB': os.environ.get('EZ_PG_DB'),
+        'EZ_PG_USER': os.environ.get('EZ_PG_USER'),
+        'EZ_PG_PASS': os.environ.get('EZ_PG_PASS'),
+        'EZ_PG_HOST': os.environ.get('EZ_PG_HOST'),
+        'EZ_PG_PORT': os.environ.get('EZ_PG_PORT'),
+    }
+    for key, val in env_overrides.items():
+        if val is not None:
+            config[key] = val
+
+    return config
 
 
 # ---------------------------------------------------------------------------

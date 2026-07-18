@@ -14,6 +14,38 @@
 - **Button state on disabled door item**: `_update_action_buttons` now checks that the selected door item is actually enabled (via `flags() & Qt.ItemIsEnabled`) before enabling query/enter buttons.
 - **Window title format**: Verified `EZ_WINDOW_TITLE` reads from locale and renders "EZSAW Version 4.0.0 Beta" correctly (no code change required).
 
+### Database Consistency
+
+#### 1. Connection Pooling
+- **`src/core/auto_stat_facilities.py`**: Added module-level `psycopg_pool.ConnectionPool` with lazy initialisation.
+- Every query function now obtains connections from the pool via `_get_pool()` / `pool.getconn()` and returns them via `_return_conn()`.
+- Falls back to direct `psycopg.connect()` if `psycopg_pool` is not installed.
+- Pool is closed on `atexit`; env vars (`EZ_PG_DB`, `EZ_PG_USER`, `EZ_PG_PASS`, `EZ_PG_HOST`, `EZ_PG_PORT`) resolved at pool creation time.
+
+#### 2. Hardcoded Credentials / Env Var Precedence
+- **`src/core/locale.py`**: Added `os.environ.get()` override logic in `load_db_config_for_locale()` — environment variables `EZ_PG_DB`, `EZ_PG_USER`, `EZ_PG_PASS`, `EZ_PG_HOST`, `EZ_PG_PORT` now take precedence over file values.
+- `auto_stat_facilities.py` already had env var overrides; added `EZ_PG_PORT` support and the port field in fallback connections.
+
+#### 3. Unused Config Keys
+- Three keys (`EZ_VEHICLES_BODY_TYPE_FIELD`, `EZ_STAT_SAMPLED_FIELD`, `EZ_STAT_TWO_VAR_FIELD`) are defined in all 5 `db_config*.json` files but never referenced in Python code.
+- Not removed (may be used in a future schema-configurable feature). Added `"_note"` field to each JSON config documenting they are reserved for future use.
+
+#### 4. SQL Schema Consistency
+- All 5 locale SQL files (`ezsaw_tables.sql`, `_de.sql`, `_es.sql`, `_fr.sql`, `_nl.sql`) have identical table structure: same 3 tables, same column names (localized), same types, same PK/FK/index definitions.
+- **Discrepancy found**: The English file (`ezsaw_tables.sql`) has 5 CHECK constraints (`ck_vin_format`, `ck_manufacture_date_not_null`, `ck_sampled_not_null`, `ck_result_x_unit_not_null`, `ck_result_y_not_null`) that are **missing** from all 4 locale SQL files. These should be added to the locale files for parity.
+
+### Files Changed
+| File | Change |
+|------|--------|
+| `src/core/auto_stat_facilities.py` | Connection pool, env var port, `_return_conn` helper |
+| `src/core/locale.py` | Env var overrides in `load_db_config_for_locale` |
+| `config/db_config.json` | Added `_note` about reserved keys |
+| `config/db_config_de.json` | Added `_note` about reserved keys |
+| `config/db_config_es.json` | Added `_note` about reserved keys |
+| `config/db_config_fr.json` | Added `_note` about reserved keys |
+| `config/db_config_nl.json` | Added `_note` about reserved keys |
+| `docs/CHANGELOG.md` | This entry |
+
 ---
 
 ## V1.2.0 Beta

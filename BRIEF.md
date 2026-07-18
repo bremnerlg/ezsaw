@@ -1,7 +1,7 @@
 # EZSAW Builder Brief
 
 > **Reusable context for AI models and new contributors.**
-> Last updated: 2026-07-17 | Version: 4.0.0 Beta
+> Last updated: 2026-07-17 | Version: 4.0.0 Beta (Database consistency fixes applied)
 
 **IMPORTANT:** Any AI agent working on this project MUST update BRIEF.md AND CHANGELOG.md (in docs/) as it goes to avoid stale context accumulating and ensure needed context is always present. Delete sections that are no longer relevant; add new ones as discoveries are made.
 
@@ -101,11 +101,12 @@ The entire DB schema is abstracted through `config/db_config*.json`. No column n
 
 ## Known Issues & Future Work
 
-1. **Connection pooling** — Every DB query opens a new TCP connection. With 1000 outliers, this means 1000 round-trips. `psycopg_pool` would fix this.
-2. **Credentials in plaintext** — `db_config*.json` contains `postgres/postgres`. Should use env vars before public release. (Partially addressed: env vars now take precedence over config file values.)
-3. **Unused config keys** — `EZ_VEHICLES_BODY_TYPE_FIELD`, `EZ_STAT_SAMPLED_FIELD`, `EZ_STAT_TWO_VAR_FIELD` are defined but never referenced in code.
+1. ~~**Connection pooling** — Every DB query opens a new TCP connection. With 1000 outliers, this means 1000 round-trips. `psycopg_pool` would fix this.~~ **RESOLVED**: `psycopg_pool.ConnectionPool` added to `auto_stat_facilities.py` with lazy init and direct-connection fallback.
+2. ~~**Credentials in plaintext** — `db_config*.json` contains `postgres/postgres`. Should use env vars before public release.~~ **RESOLVED**: Env vars (`EZ_PG_DB`, `EZ_PG_USER`, `EZ_PG_PASS`, `EZ_PG_HOST`, `EZ_PG_PORT`) now override config file values in both `auto_stat_facilities.py` and `locale.py`.
+3. ~~**Unused config keys** — `EZ_VEHICLES_BODY_TYPE_FIELD`, `EZ_STAT_SAMPLED_FIELD`, `EZ_STAT_TWO_VAR_FIELD` are defined but never referenced in code.~~ **RESOLVED**: Documented as reserved for future use via `_note` field in each `db_config*.json`.
 4. **`db/insert_data.py` has translation errors** — French column names are wrong (e.g., uses `nom_stat_porte_vehicule` instead of `nom_stat_porte_auto`). Dutch column names also wrong. Script should not be used.
 5. **`db/fix_sql.py` is broken** — Has syntax error, uses wrong door mappings, hardcodes dates. Should not be used.
+6. **Missing CHECK constraints in locale SQL files** — The English `ezsaw_tables.sql` has 5 CHECK constraints (`ck_vin_format`, `ck_manufacture_date_not_null`, `ck_sampled_not_null`, `ck_result_x_unit_not_null`, `ck_result_y_not_null`) that are absent from all 4 locale SQL files (`_de`, `_es`, `_fr`, `_nl`). Should be added for schema parity.
 
 ---
 
