@@ -124,14 +124,21 @@ BEGIN
   END LOOP;
 END $$;
 
--- Step 5: Swap tables
-DROP TABLE auto_door_stats CASCADE;
+-- Step 5: Drop FK constraints explicitly before dropping tables (safer than CASCADE)
+ALTER TABLE steps DROP CONSTRAINT IF EXISTS steps_fk_steps_auto_door_stats_fkey;
+ALTER TABLE steps DROP CONSTRAINT IF EXISTS steps_vin_fkey;
+
+-- Step 6: Swap tables
+DROP TABLE auto_door_stats;
 ALTER TABLE auto_door_stats_new RENAME TO auto_door_stats;
-DROP TABLE steps CASCADE;
+DROP TABLE steps;
 ALTER TABLE steps_new RENAME TO steps;
 
--- Step 6: Re-add constraints
+-- Step 7: Re-add constraints and CHECK constraints
 ALTER TABLE auto_door_stats ADD PRIMARY KEY (auto_door_stat_id);
+ALTER TABLE auto_door_stats ADD CONSTRAINT ck_sampled_not_null CHECK (sampled IS NOT NULL);
+ALTER TABLE auto_door_stats ADD CONSTRAINT ck_result_x_unit_not_null CHECK (result_x_unit IS NOT NULL);
+ALTER TABLE auto_door_stats ADD CONSTRAINT ck_result_y_not_null CHECK (result_y IS NOT NULL);
 ALTER TABLE steps ADD FOREIGN KEY (fk_steps_auto_door_stats) REFERENCES auto_door_stats(auto_door_stat_id);
 ALTER TABLE steps ADD FOREIGN KEY (vin) REFERENCES vehicles(vin);
 

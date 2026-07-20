@@ -33,6 +33,7 @@ BEGIN
 
   FOR rec IN
     SELECT s.vin, s.door, s.fk_steps_auto_door_stats,
+           a.auto_door_stat_name,
            a.result_y_lower_lim, a.result_y, a.result_y_upper_lim,
            ROW_NUMBER() OVER (PARTITION BY s.vin, s.door ORDER BY s.fk_steps_auto_door_stats) AS rn
     FROM steps s
@@ -41,8 +42,8 @@ BEGIN
   LOOP
     row_idx := row_idx + 1;
 
-    -- Only target stat #3 (Hinge Bind) in every VIN/door block
-    IF rec.rn != 3 THEN
+    -- Only target Hinge Bind stat in every VIN/door block
+    IF rec.auto_door_stat_name != 'Hinge Bind (Sampled)' THEN
       CONTINUE;
     END IF;
 
