@@ -30,9 +30,9 @@ LOCALE_COLUMNS = {
                     "ergebnis_x", "einheit_ergebnis_x", "untere_grenze_ergebnis_y", "ergebnis_y",
                     "obere_grenze_ergebnis_y", "einheit_ergebnis_y"]},
     "fr": {"table": "stats_portes_automobiles",
-           "cols": ["id_stat_porte_auto", "nom_stat_porte_auto", "échantillonné", "deux_variablés",
-                    "résultat_x", "unité_résultat_x", "limite_infèreure_résultat_y", "résultat_y",
-                    "limite_suptère_résultat_y", "unité_résultat_y"]},
+           "cols": ["id_stat_porte_auto", "nom_stat_porte_auto", "échantillonné", "deux_variables",
+                    "résultat_x", "unité_résultat_x", "limite_inférieure_résultat_y", "résultat_y",
+                    "limite_supérieure_résultat_y", "unité_résultat_y"]},
     "es": {"table": "estadísticas_puertas_vehículos",
            "cols": ["id_estadística_puerta_vehículo", "nombre_estadística_puerta_vehículo", "muestreado", "dos_variables",
                     "resultado_x", "unidad_resultado_x", "límite_inferior_resultado_y", "resultado_y",
@@ -183,7 +183,7 @@ def process_locale(conn, locale, filepath, is_steps=False):
         "de": ["kennzeichen", "marke", "modell", "karosserieart", "herstellungsdatum"],
         "fr": ["immatriculation", "marque", "modèle", "type_de_carrosserie", "date_de_fabrique"],
         "es": ["matrícula", "marca", "modelo", "tipocarrocería", "fecha_fabricación"],
-        "nl": ["kenteken", "merk", "model", "carrosserietype", "fabriekdatum"],
+        "nl": ["kenteken", "merk", "model", "carrosserietype", "fabrieksdatum"],
     }
     locale_v_cols = v_trans[locale]
 

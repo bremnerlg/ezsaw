@@ -2,7 +2,7 @@
   "EZ_LOCALE_NAME": "Deutsch",
   "EZ_LOCALE_CODE": "de",
   "EZ_DB_CONFIG_FILE": "db_config_de.json",
-  "EZ_WINDOW_TITLE": "EZSAW Version 4.0.0 Beta",
+  "EZ_WINDOW_TITLE": "EZSAW Version 4.2.0 Beta",
   "EZ_APP_TITLE": "Statistischer Analyse-Assistent",
   "EZ_VIN_PLACEHOLDER": "VIN eingeben...",
   "EZ_BTN_QUERY": "Abfragen",

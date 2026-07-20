@@ -2,7 +2,7 @@
   "EZ_LOCALE_NAME": "Nederlands",
   "EZ_LOCALE_CODE": "nl",
   "EZ_DB_CONFIG_FILE": "db_config_nl.json",
-  "EZ_WINDOW_TITLE": "EZSAW Versie 4.0.0 Beta",
+  "EZ_WINDOW_TITLE": "EZSAW Versie 4.2.0 Beta",
   "EZ_APP_TITLE": "Statistische Analyse-Assistent",
   "EZ_VIN_PLACEHOLDER": "VIN invoeren...",
   "EZ_BTN_QUERY": "Opvragen",
