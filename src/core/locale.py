@@ -47,7 +47,7 @@ def load_prefs():
     the file is missing or corrupt."""
     if _PREFS_FILE.exists():
         try:
-            with open(_PREFS_FILE) as f:
+            with open(_PREFS_FILE, encoding='utf-8') as f:
                 return json.load(f)
         except (json.JSONDecodeError, OSError):
             pass
@@ -57,7 +57,7 @@ def load_prefs():
 def save_prefs(prefs):
     """Persist user preferences to user_prefs.json."""
     try:
-        with open(_PREFS_FILE, 'w') as f:
+        with open(_PREFS_FILE, 'w', encoding='utf-8') as f:
             json.dump(prefs, f, indent=2)
     except OSError:
         pass
@@ -92,7 +92,7 @@ def load_locale_strings(locale_code=None):
     if not locale_filepath.exists():
         locale_filepath = _CONFIG_DIR / _LOCALE_FILES['en']
     try:
-        with open(locale_filepath) as f:
+        with open(locale_filepath, encoding='utf-8') as f:
             return json.load(f)
     except (json.JSONDecodeError, OSError):
         return json.loads('{}')
@@ -115,7 +115,7 @@ def load_db_config_for_locale(locale_code=None):
         filepath = _CONFIG_DIR / explicit
         if filepath.exists():
             try:
-                with open(filepath) as f:
+                with open(filepath, encoding='utf-8') as f:
                     return json.load(f)
             except (json.JSONDecodeError, OSError):
                 pass
@@ -123,7 +123,7 @@ def load_db_config_for_locale(locale_code=None):
     db_config = {}
     default_path = _CONFIG_DIR / 'db_config.json'
     try:
-        with open(default_path) as f:
+        with open(default_path, encoding='utf-8') as f:
             db_config = json.load(f)
     except (json.JSONDecodeError, OSError):
         pass
@@ -134,7 +134,7 @@ def load_db_config_for_locale(locale_code=None):
         override_filepath = _CONFIG_DIR / config_override_file
         if override_filepath.exists():
             try:
-                with open(override_filepath) as f:
+                with open(override_filepath, encoding='utf-8') as f:
                     db_config.update(json.load(f))
             except (json.JSONDecodeError, OSError):
                 pass
@@ -171,7 +171,7 @@ def get_supported_db_configs():
     configs = []
     for filepath in sorted(_CONFIG_DIR.glob('db_config*.json')):
         try:
-            with open(filepath) as f:
+            with open(filepath, encoding='utf-8') as f:
                 data = json.load(f)
             db_name = data.get('EZ_PG_DB', filepath.stem)
             configs.append((db_name, filepath.name))

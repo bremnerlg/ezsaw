@@ -36,7 +36,7 @@ DB_CONFIG_FILE_PATH = _CONFIG_DIR / 'db_config.json'
 def load_db_config():
     """Load the default db_config.json from the config directory."""
     try:
-        with open(DB_CONFIG_FILE_PATH) as f:
+        with open(DB_CONFIG_FILE_PATH, encoding='utf-8') as f:
             return json.load(f)
     except (json.JSONDecodeError, OSError):
         return {}
@@ -466,7 +466,7 @@ def load_stat_ordering():
     """Load the stat_ordering.json config. Returns default structure if
     the file is missing or corrupt."""
     try:
-        with open(_STAT_ORDERING_PATH) as f:
+        with open(_STAT_ORDERING_PATH, encoding='utf-8') as f:
             return json.load(f)
     except (json.JSONDecodeError, OSError):
         return {'default_order': 'alphabetical', 'branches': []}

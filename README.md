@@ -25,4 +25,6 @@ In PowerShell, execute:
 ```
 pip install numpy psycopg[binary] PyQt5 pyqtgraph
 ```
-and you will have all needed Python dependencies.
+and you will have all needed Python dependencies. 
+
+Note: An issue recently addressed with Windows 11 is Python uses ANSI code pages for application elements, which would corrupt ASCI characters. The proposed fix for this is to use UTF-8 formatting in the python configuration parsing. 
