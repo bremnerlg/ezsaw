@@ -94,7 +94,7 @@ LOCALIZED_TABLES = {
         'result_y_unit': 'unidad_resultado_y',
         'steps': 'pasos',
         'vin': 'matrícula',
-        'door': 'ubicación puerta',
+        'door': 'ubicación_puerta',
         'fk_steps_auto_door_stats': 'fk_paso_estadística_puerta_vehículo',
     },
     'nl': {

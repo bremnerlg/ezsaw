@@ -35,15 +35,25 @@ STAT_ORDERING = [
 
 
 # Per-test-type data profiles (sampled, two_var, x_unit, y_unit)
+# Updated from MATLAB SimulData.m analysis (docs/graphs/SimulData.m)
 TEST_PROFILES = {
+    # Fig 8: Spring = Force/2 + noise, X=Force(N) Y=Spring(mm/s)
     "Striker Alignment (Sampled)": (True, True, "newtons", "mm/s"),
+    # Fig 4: Hinge = 1.5 + factor*0.2 + noise, flat Y=Hinge(deg)
     "Hinge Inclination (Sampled)": (False, False, "", "degrees"),
-    "Hinge Bind (Sampled)": (False, False, "", "newtons"),
-    "Hinge and Doorcheck Performance (Sampled)": (True, True, "newtons", "newtons"),
-    "Door Check Performance No Cabin (Sampled)": (False, False, "", "newtons"),
-    "Seal Dynamics (Sampled)": (False, False, "", "newtons"),
+    # Fig 5: Friction = Hinge*100 + noise, X=Hinge(deg) Y=Friction(mm/s)
+    "Hinge Bind (Sampled)": (True, True, "degrees", "mm/s"),
+    # Fig 3: FO_Speed = FO_Energy*50 + noise, X=FO_Energy(J) Y=FO_Speed(mm/s)
+    "Hinge and Doorcheck Performance (Sampled)": (True, True, "joules", "mm/s"),
+    # Fig 6: CO_Speed = CO_Energy*50 + noise, X=CO_Energy(J) Y=CO_Speed(mm/s)
+    "Door Check Performance No Cabin (Sampled)": (True, True, "joules", "mm/s"),
+    # Fig 9: FO_Speed ≈ 5*Force + noise, X=Force(N) Y=FO_Speed(mm/s)
+    "Seal Dynamics (Sampled)": (True, True, "newtons", "mm/s"),
+    # Fig 7: Force = 190 + factor*20 + noise, flat Y=Force(N)
     "Static Closing Force (Sampled)": (False, False, "", "newtons"),
+    # Fig 1: Energy = 3.5 + factor*1.5 + noise, flat Y=Energy(J)
     "Closing Energy from First Position (Sampled)": (False, False, "", "joules"),
+    # Fig 2: FO_Energy = 14 + factor*2 + noise, flat Y=FO_Energy(J)
     "Closing Energy from Full Open (Sampled)": (False, False, "", "joules"),
 }
 
@@ -104,7 +114,7 @@ STEPS_COLUMNS = {
     "en": ("vin", "door", "fk_steps_auto_door_stats"),
     "de": ("kennzeichen", "tuerort", "fk_schritt_stat_tueren_fahrzeug"),
     "fr": ("immatriculation", "emplacement_porte", "fk_étape_stat_porte_auto"),
-    "es": ("matrícula", "ubicación puerta", "fk_paso_estadística_puerta_vehículo"),
+    "es": ("matrícula", "ubicación_puerta", "fk_paso_estadística_puerta_vehículo"),
     "nl": ("kenteken", "deurlocatie", "fk_stap_stat_deur_voertuig"),
 }
 
