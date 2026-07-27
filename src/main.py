@@ -261,6 +261,11 @@ class intro_form(QMainWindow):
         header.addWidget(self.title)
         header.addStretch()
 
+        self.button_reset = QPushButton(self.locale['EZ_BTN_RESET'])
+        self.button_reset.clicked.connect(self._restart_app)
+        header.addWidget(self.button_reset)
+
+
         lang_label = QLabel(self.locale['EZ_LABEL_LANGUAGE'])
         lang_label.setStyleSheet(
             f'color: {TEXT_DIM}; font-size: 12px; font-weight: 500;'
@@ -467,7 +472,6 @@ class intro_form(QMainWindow):
         new_locale = self.lang_combo.itemData(index)
         if new_locale and new_locale != get_current_locale():
             set_locale(new_locale)
-            self._restart_app()
 
     def _on_db_changed(self, index):
         new_db_file = self.db_combo.itemData(index)
