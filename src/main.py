@@ -477,7 +477,6 @@ class intro_form(QMainWindow):
         new_db_file = self.db_combo.itemData(index)
         if new_db_file and new_db_file != get_current_db_config_file():
             set_current_db_config_file(new_db_file)
-            self._restart_app()
 
     def _restart_app(self):
         QProcess.startDetached(sys.executable, sys.argv)

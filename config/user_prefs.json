@@ -1,4 +1,4 @@
 {
-  "locale": "en",
-  "db_config": "db_config.json"
+  "locale": "de",
+  "db_config": "db_config_es.json"
 }
