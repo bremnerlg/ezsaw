@@ -25,6 +25,7 @@ DECLARE
   systematic_cnt int := 0;
   subtle_cnt int := 0;
   extreme_cnt int := 0;
+  v_temp int := 0;
 BEGIN
 
   -- Phase 1: Systematic outliers — one targeted stat per (VIN, door) block
@@ -107,7 +108,8 @@ BEGIN
   WHERE random() < 0.03
     AND result_y BETWEEN result_y_lower_lim AND result_y_upper_lim;
 
-  subtle_cnt := subtle_cnt + ROW_COUNT;
+  GET DIAGNOSTICS v_temp = ROW_COUNT;
+  subtle_cnt := subtle_cnt + v_temp;
 
   RAISE NOTICE 'Subtle boundary outliers added: %', subtle_cnt;
 
@@ -126,7 +128,8 @@ BEGIN
   WHERE random() < 0.005
     AND result_y BETWEEN result_y_lower_lim AND result_y_upper_lim;
 
-  extreme_cnt := extreme_cnt + ROW_COUNT;
+  GET DIAGNOSTICS v_temp = ROW_COUNT;
+  extreme_cnt := extreme_cnt + v_temp;
 
   RAISE NOTICE 'Extreme outliers added: %', extreme_cnt;
 
