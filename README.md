@@ -1,5 +1,5 @@
 # EZMetrology Door Analysis Wizard (Public Release MIT License)
-A beta version of the EzMetrology EZSAW program with the proprietary elements stripped away. Not functional as a standlone, and requires that user provide a database compliant with the config/locale_*.json schema. With modification may serve as a standalone automotive graphing utility with no troubleshooting logic (See LICENSE). Developed solely by Bremner Lloyd Gill.
+A beta version of the EzMetrology EZSAW program with the proprietary elements stripped away. Not functional as a standlone, and requires that user provide a database compliant with the config/locale_*.json schema. With modification may serve as a standalone automotive graphing utility with user-defined troubleshooting logic (See LICENSE). Developed solely by Bremner Lloyd Gill.
 
 ## Install Instructions (Linux)
 The dependencies for this program are python3 (Version 3.12.3, python3-full package is recommended on Debian systems) and postgresql (Version 16+). In order to get Python to work correctly, it is recommended to set up a venv with the correct packages installed. Optionally, but strongly suggested, is [pgadmin4](https://www.pgadmin.org/download/pgadmin-4-apt/) to make your database setup relatively painless, especially if you are used to SQL Server or something of that nature.
