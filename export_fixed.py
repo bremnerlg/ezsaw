@@ -47,7 +47,7 @@ DOOR_LOCALE_MAP = {
     "en": ("steps", "vin", "door", "fk_steps_auto_door_stats"),
     "de": ("schritte", "kennzeichen", "tuerort", "fk_schritt_stat_tueren_fahrzeug"),
     "fr": ("étapes", "immatriculation", "emplacement_porte", "fk_étape_stat_porte_auto"),
-    "es": ("pasos", "matrícula", "ubicación puerta", "fk_paso_estadística_puerta_vehículo"),
+    "es": ("pasos", "matrícula", "ubicación_puerta", "fk_paso_estadística_puerta_vehículo"),
     "nl": ("stappen", "kenteken", "deurlocatie", "fk_stap_stat_deur_voertuig"),
 }
 

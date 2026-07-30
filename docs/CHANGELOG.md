@@ -2,6 +2,18 @@
 
 ---
 
+## V4.2.2 Beta
+
+### MATLAB-Aligned Statistics & DB Rebuild
+
+- **`regenerate_stats.py`**: All 9 stats regenerated from SimulData.m generating equations; 3 stats (Hinge Bind, Door Check No Cabin, Seal Dynamics) changed from flat to two-variable with sloped tolerance lines.
+- **`src/main.py`**: Tolerance lines now share one common slope per statistic; lines extended to span full graph width (3× viewport margin).
+- **SQL files**: All 5 locale `.sql` files regenerated via `export_fixed.py`; duplicate vehicle INSERT blocks removed; Spanish column name `"ubicación puerta"` fixed to `"ubicación_puerta"`.
+- **Databases**: All 13 old databases dropped; 5 clean databases (`ezsaw`, `ezsaw_de`, `ezsaw_es`, `ezsaw_fr`, `ezsaw_nl`) rebuilt from corrected `.sql` files.
+- **Quality**: 84.5% of results within tolerance (≥80% target); every VIN has ≥2 doors with full 9-test suite; zero orphaned rows.
+
+---
+
 ## V4.2.0 Beta
 
 ### Database Schema Fixes

@@ -1,7 +1,7 @@
 # EZSAW Builder Brief
 
 > **Reusable context for AI models and new contributors.**
-> Last updated: 2026-07-17 | Version: 4.1.0 Beta (Graph vehicle info enrichment)
+> Last updated: 2026-07-27 | Version: 4.2.2 Beta (MATLAB-aligned stats + DB rebuild)
 
 **IMPORTANT:** Any AI agent working on this project MUST update BRIEF.md AND CHANGELOG.md (in docs/) as it goes to avoid stale context accumulating and ensure needed context is always present. Delete sections that are no longer relevant; add new ones as discoveries are made.
 
@@ -65,13 +65,11 @@ ezsaw/
 
 | DB | Language | Source SQL | Rows (veh/stats/steps) | Notes |
 |----|----------|-----------|----------------------|-------|
-| `ezsaw` | English | `ezsaw_tables.sql` + `insert_steps.sql` | 1030 / 38205 / 38205 | Interleaved stat ordering |
-| `ezsaw2` | German | `ezsaw_tables_de.sql` | 1030 / 38205 / 38205 | Ordered by stat_ordering.json |
-| `ezsaw3` | English (fixed) | `sql_fix.sql` + `fix_db.py` | 1030 / 38205 / 38205 | Canonical fixed DB |
-| `ezsaw_de` | German | `ezsaw_tables_de.sql` | 1030 / 38205 / 38205 | Standalone locale DB |
-| `ezsaw_fr` | French | `ezsaw_tables_fr.sql` | 1030 / 38205 / 38205 | Standalone locale DB |
-| `ezsaw_es` | Spanish | `ezsaw_tables_es.sql` | 1030 / 38205 / 38205 | Standalone locale DB |
-| `ezsaw_nl` | Dutch | `ezsaw_tables_nl.sql` | 1030 / 38205 / 38205 | Standalone locale DB |
+| `ezsaw` | English | `ezsaw_tables.sql` | 1030 / 38205 / 38205 | MATLAB-aligned stats, 84.5% in-tol |
+| `ezsaw_de` | German | `ezsaw_tables_de.sql` | 1030 / 38205 / 38205 | MATLAB-aligned stats |
+| `ezsaw_es` | Spanish | `ezsaw_tables_es.sql` | 1030 / 38205 / 38205 | MATLAB-aligned stats |
+| `ezsaw_fr` | French | `ezsaw_tables_fr.sql` | 1030 / 38205 / 38205 | MATLAB-aligned stats |
+| `ezsaw_nl` | Dutch | `ezsaw_tables_nl.sql` | 1030 / 38205 / 38205 | MATLAB-aligned stats |
 
 ---
 

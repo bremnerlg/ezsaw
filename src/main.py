@@ -1,5 +1,5 @@
 """
-EZSAW V4.2.0 Beta — PyQt5 GUI for door check outlier analysis.
+EZSAW V4.2.2 Beta — PyQt5 GUI for door check outlier analysis.
 
 Provides an interactive interface for querying vehicle door measurement
 data by VIN or make/model/year, plotting outlier results, and navigating
@@ -627,21 +627,41 @@ class intro_form(QMainWindow):
                 pen=None, symbol='o', symbolBrush='#ff4444', symbolSize=10,
             )
 
-            self.plot.addLine(
-                y=stat.result_y_lower,
-                pen=pg.mkPen(LIME, width=1.5, style=pg.QtCore.Qt.DashLine),
-            )
-            self.plot.addLine(
-                y=stat.result_y_upper,
-                pen=pg.mkPen(LIME, width=1.5, style=pg.QtCore.Qt.DashLine),
-            )
-
             margin_x = max(abs(float(stat.result_x)) * 0.3, 5.0)
             margin_y = max(abs(float(stat.result_y)) * 0.3, 5.0)
-            self.plot.setXRange(
-                float(stat.result_x) - margin_x,
-                float(stat.result_x) + margin_x,
-            )
+            view_x_min = float(stat.result_x) - margin_x
+            view_x_max = float(stat.result_x) + margin_x
+
+            if stat.result_x_unit is not None and float(stat.result_x) != 0:
+                # Two-variable stat: draw sloped tolerance lines sharing one slope
+                slope = float(stat.result_y_lower) / float(stat.result_x)
+                intercept_upper = float(stat.result_y_upper) - slope * float(stat.result_x)
+                # Draw lines across a wider x range so they span the full graph
+                line_margin = margin_x * 3.0
+                line_x_min = float(stat.result_x) - line_margin
+                line_x_max = float(stat.result_x) + line_margin
+                self.plot.plot(
+                    [line_x_min, line_x_max],
+                    [slope * line_x_min, slope * line_x_max],
+                    pen=pg.mkPen(LIME, width=1.5, style=pg.QtCore.Qt.DashLine),
+                )
+                self.plot.plot(
+                    [line_x_min, line_x_max],
+                    [slope * line_x_min + intercept_upper, slope * line_x_max + intercept_upper],
+                    pen=pg.mkPen(LIME, width=1.5, style=pg.QtCore.Qt.DashLine),
+                )
+            else:
+                # Single-variable stat: draw horizontal tolerance lines
+                self.plot.addLine(
+                    y=stat.result_y_lower,
+                    pen=pg.mkPen(LIME, width=1.5, style=pg.QtCore.Qt.DashLine),
+                )
+                self.plot.addLine(
+                    y=stat.result_y_upper,
+                    pen=pg.mkPen(LIME, width=1.5, style=pg.QtCore.Qt.DashLine),
+                )
+
+            self.plot.setXRange(view_x_min, view_x_max)
             self.plot.setYRange(
                 float(stat.result_y) - margin_y,
                 float(stat.result_y) + margin_y,
