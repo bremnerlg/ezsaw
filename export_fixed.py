@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """Export fixed English DB data to all locale SQL files.
 
-Connects to the ezsaw3 database (which should already have been fixed by
+Connects to the SG3 database (which should already have been fixed by
 fix_db.py or manual corrections), reads vehicle/stat/step data, and writes
 fresh INSERT blocks into all 5 locale SQL files (en, de, fr, es, nl) and
 insert_steps.sql.
 
 Run this AFTER fix_db.py has regenerated the data files, or after making
-direct corrections to the ezsaw3 database.
+direct corrections to the SG3 database.
 """
 
 import re
@@ -16,7 +16,7 @@ import psycopg2
 from datetime import date
 
 DB_CONFIG = {
-    "host": "localhost", "dbname": "ezsaw3",
+    "host": "localhost", "dbname": "SG3",
     "user": "postgres", "password": "postgres",
 }
 
@@ -245,13 +245,13 @@ def process_locale(conn, locale, filepath, is_steps=False):
 
 def main():
     conn = connect()
-    print("Connected to ezsaw3 (fixed English DB)")
+    print("Connected to SG3 (fixed English DB)")
 
     for locale in ["en", "de", "fr", "es", "nl"]:
         if locale == "en":
-            path = "db/ezsaw_tables.sql"
+            path = "db/SG_tables.sql"
         else:
-            path = f"db/ezsaw_tables_{locale}.sql"
+            path = f"db/SG_tables_{locale}.sql"
         process_locale(conn, locale, path)
 
     print("\nDone!")

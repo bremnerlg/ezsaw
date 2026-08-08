@@ -1,5 +1,5 @@
 """
-EZSAW V4.2.2 Beta — PyQt5 GUI for door check outlier analysis.
+SG V4.2.2 Beta — PyQt5 GUI for door check outlier analysis.
 
 Provides an interactive interface for querying vehicle door measurement
 data by VIN or make/model/year, plotting outlier results, and navigating

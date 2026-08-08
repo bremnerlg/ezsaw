@@ -1,5 +1,5 @@
 """
-Shared pytest fixtures for EZSAW tests.
+Shared pytest fixtures for SG tests.
 
 The autouse _clean_prefs fixture ensures each test starts with a
 pristine user_prefs.json and that module-level locale/DB config

@@ -1,5 +1,5 @@
 """
-Locale loading for EZSAW.
+Locale loading for SG.
 
 Manages UI text strings (from locale_*.json), DB connection configs
 (from db_config*.json), and user language/database persistence

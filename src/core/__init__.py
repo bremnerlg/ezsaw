@@ -1,5 +1,5 @@
 """
-EZSAW core package.
+SG core package.
 
 Re-exports public API from the database query layer and locale system
 so consumers can do: from src.core import vin_query, load_locale_strings
@@ -21,7 +21,7 @@ __all__ = [
     'build_outlier_query_by_vehicle',
     'build_stat_family_query',
     'load_db_config',
-    'ezsaw_default_connect',
+    'SG_default_connect',
     'apply_stat_ordering',
     'load_stat_ordering',
     # locale
@@ -53,7 +53,7 @@ from src.core.auto_stat_facilities import (
     build_outlier_query_by_vehicle,
     build_stat_family_query,
     load_db_config,
-    ezsaw_default_connect,
+    SG_default_connect,
     apply_stat_ordering,
     load_stat_ordering,
 )

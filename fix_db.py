@@ -432,9 +432,9 @@ def main():
     # Process each locale
     for locale, spec in LOCALE_COLUMNS.items():
         if locale == "en":
-            sql_file = "db/ezsaw_tables.sql"
+            sql_file = "db/SG_tables.sql"
         else:
-            sql_file = f"db/ezsaw_tables_{locale}.sql"
+            sql_file = f"db/SG_tables_{locale}.sql"
 
         print(f"\nProcessing {locale}: {sql_file}")
         n_stats, n_steps = build_sql_file(sql_file, locale, sql_file)

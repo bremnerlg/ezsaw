@@ -1,5 +1,5 @@
 """
-Debug and diagnostic tools for EZSAW.
+Debug and diagnostic tools for SG.
 
 These functions operate on PyQt5 widget instances and the current
 database API (vin_query, init_test_case from auto_stat_facilities).

@@ -1,5 +1,5 @@
 """
-Database query layer for EZSAW.
+Database query layer for SG.
 
 Provides functions to query PostgreSQL for door check outlier results,
 vehicle lookups, and stat family data. All queries use parameterized
@@ -89,7 +89,7 @@ def _return_conn(conn):
         conn.close()
 
 
-def ezsaw_default_connect(config=None):
+def SG_default_connect(config=None):
     """Return a DB connection from the pool (or a fresh one if pool is off).
 
     DB credentials are resolved in order of precedence:
@@ -274,7 +274,7 @@ def vin_query(vin, config=None):
     if config is None:
         config = PGDB_CONFIG
     query = build_outlier_query(config)
-    conn = ezsaw_default_connect(config)
+    conn = SG_default_connect(config)
     try:
         with conn.cursor() as cur:
             cur.execute(query, (vin,))
@@ -336,7 +336,7 @@ def vehicle_query(make, model, year, config=None):
     if config is None:
         config = PGDB_CONFIG
     query = build_outlier_query_by_vehicle(config)
-    conn = ezsaw_default_connect(config)
+    conn = SG_default_connect(config)
     try:
         with conn.cursor() as cur:
             cur.execute(query, (make, model, year))
@@ -386,7 +386,7 @@ def fetch_stat_family(test_name, door_location, config=None):
     if config is None:
         config = PGDB_CONFIG
     query = build_stat_family_query(config)
-    conn = ezsaw_default_connect(config)
+    conn = SG_default_connect(config)
     try:
         with conn.cursor() as cur:
             cur.execute(query, (test_name, door_location))
@@ -406,7 +406,7 @@ def fetch_makes(config=None):
         config = PGDB_CONFIG
     table = _quote_identifier(config['EZ_VEHICLES_TABLE_NAME'])
     make_col = _quote_identifier(config['EZ_VEHICLES_MAKE_FIELD'])
-    conn = ezsaw_default_connect(config)
+    conn = SG_default_connect(config)
     try:
         with conn.cursor() as cur:
             cur.execute(f"SELECT DISTINCT {make_col} FROM {table} ORDER BY {make_col}")
@@ -422,7 +422,7 @@ def fetch_models(make, config=None):
     table = _quote_identifier(config['EZ_VEHICLES_TABLE_NAME'])
     make_col = _quote_identifier(config['EZ_VEHICLES_MAKE_FIELD'])
     model_col = _quote_identifier(config['EZ_VEHICLES_MODEL_FIELD'])
-    conn = ezsaw_default_connect(config)
+    conn = SG_default_connect(config)
     try:
         with conn.cursor() as cur:
             cur.execute(
@@ -442,7 +442,7 @@ def fetch_years(make, model, config=None):
     make_col = _quote_identifier(config['EZ_VEHICLES_MAKE_FIELD'])
     model_col = _quote_identifier(config['EZ_VEHICLES_MODEL_FIELD'])
     date_col = _quote_identifier(config['EZ_VEHICLES_MAN_DATE_FIELD'])
-    conn = ezsaw_default_connect(config)
+    conn = SG_default_connect(config)
     try:
         with conn.cursor() as cur:
             cur.execute(

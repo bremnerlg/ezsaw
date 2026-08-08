@@ -34,7 +34,7 @@
     {"label": "Rear Hatch", "value": "rear_hatch"},
     {"label": "Hood", "value": "hood"}
   ],
-  "EZ_PG_DB": "ezsaw",
+  "EZ_PG_DB": "SG",
   "EZ_PG_USER": "postgres",
   "EZ_PG_PASS": "postgres",
    "EZ_PG_HOST": "localhost",

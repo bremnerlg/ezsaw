@@ -1,5 +1,5 @@
 """
-Stress and integration tests for EZSAW.
+Stress and integration tests for SG.
 
 Covers 1000-case plotting, combo cascading, door availability greying,
 graph info content, edge cases, navigation stress, matricize scaling,
