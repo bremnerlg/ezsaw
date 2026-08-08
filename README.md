@@ -1,4 +1,4 @@
-# EZ Door Analysis Wizard (Public Release MIT License)
+# Schema Grapher (PostgreSQL Based)
 A beta version of the EzMetrology EZSAW program with the proprietary elements stripped away. Not functional as a standlone, and requires that user provide a database compliant with the config/locale_*.json schema. With modification may serve as a standalone automotive graphing utility with user-defined troubleshooting logic (See LICENSE). Developed solely by Bremner Lloyd Gill.
 
 ## Install Instructions (Linux)
