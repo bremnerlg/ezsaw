@@ -1,4 +1,4 @@
-# Schema Grapher (PostgreSQL Based)
+# Auto Scheme Grapher (PostgreSQL Based)
 This is the basis for an automotive analysis program (the full version which was later derived from this work is a private testing program for only the company use). As such the names will reflect often cryptic/company specific branding, so the program writter will try to fix these issues from time to time. Not functional as a standlone, and requires that user provide a database compliant with the config/locale_*.json schema. With modification may serve as a standalone automotive graphing utility with user-defined troubleshooting logic (See LICENSE). Developed solely by Bremner Lloyd Gill.
 
 ## Install Instructions (Linux)
